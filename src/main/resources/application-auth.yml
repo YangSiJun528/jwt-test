@@ -1,9 +1,0 @@
-gauth:
-  client-id: e5502aa30a504963a3327e84b916e1bff3eafe1987834bfd9806a01bf8c2a8cd
-  client-secert: a8edd1197b894dffac591c722d6b43c5e871bee0b9274e82b5bb997e40df5b4e
-  redirect-url: http://localhost:8080/auth/gauth/code
-
-jwt:
-  secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-  access-expiration: 60000 # 86400000 # a day
-  refresh-expiration: 604800000 # 7 days

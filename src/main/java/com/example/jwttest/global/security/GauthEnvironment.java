@@ -10,5 +10,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public final class GauthEnvironment {
     private final String clientId;
     private final String clientSecret;
-    private final String redirectUrl;
+    private final String redirectUri;
 }
