@@ -1,21 +1,16 @@
 package com.example.jwttest.domain.user.controller;
 
-import com.example.jwttest.global.security.GauthEnvironment;
+import com.example.jwttest.global.security.gauth.GauthEnvironment;
 import gauth.GAuth;
-import gauth.GAuthCode;
 import gauth.GAuthToken;
 import gauth.GAuthUserInfo;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 

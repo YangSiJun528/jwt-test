@@ -1,7 +1,7 @@
 package com.example.jwttest;
 
-import com.example.jwttest.global.security.GauthEnvironment;
-import com.example.jwttest.global.security.JwtEnvironment;
+import com.example.jwttest.global.security.gauth.GauthEnvironment;
+import com.example.jwttest.global.security.jwt.JwtEnvironment;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

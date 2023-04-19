@@ -1,4 +1,4 @@
-package com.example.jwttest.global.security;
+package com.example.jwttest.global.security.gauth;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
