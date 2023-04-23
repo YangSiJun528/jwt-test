@@ -44,7 +44,7 @@ public class UserController {
         return ResponseEntity.ok().body(gAuthUserInfo.toString());
     }
 
-    @GetMapping("login") // // http://localhost:8080/auth/login
+    @GetMapping("login") // http://localhost:8080/auth/login
     public void login(HttpServletResponse httpServletResponse) {
         log.info("CLIENT_ID : {}", CLIENT_ID);
         log.info("REDIRECT_URL : {}", REDIRECT_URI);
