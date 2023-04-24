@@ -7,6 +7,7 @@ import com.example.jwttest.domain.user.service.SignInService;
 import com.example.jwttest.domain.user.service.SignOutService;
 import com.example.jwttest.global.security.gauth.GauthEnvironment;
 import com.example.jwttest.global.security.jwt.UserInfo;
+import com.example.jwttest.global.security.util.SecurityUtil;
 import gauth.GAuth;
 import gauth.GAuthToken;
 import gauth.GAuthUserInfo;
@@ -57,7 +58,7 @@ public class AuthController {
 
     @GetMapping("signout")
     public ResponseEntity<Map<String, String>> signOut() {
-        UserInfo userInfo = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserInfo userInfo = SecurityUtil.getUserInfo();
         signoutService.execute(userInfo.userId());
         return ResponseEntity.ok().body(Map.of("message", "User가 성공적으로 삭제되었습니다"));
     }
