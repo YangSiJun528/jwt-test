@@ -1,6 +1,6 @@
 package com.example.jwttest.domain.user.dto;
 
-import com.example.jwttest.domain.user.domain.Role;
+import com.example.jwttest.domain.user.enums.Role;
 import com.example.jwttest.domain.user.domain.User;
 
 import java.util.UUID;

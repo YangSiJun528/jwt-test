@@ -1,4 +1,4 @@
-package com.example.jwttest.domain.user.domain;
+package com.example.jwttest.domain.user.enums;
 
 public enum Role {
     ROLE_USER,

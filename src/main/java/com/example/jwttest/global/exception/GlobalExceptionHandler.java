@@ -25,6 +25,6 @@ public class GlobalExceptionHandler {
                 .body(new ExceptionResponseEntity("internal server error has occurred"));
     }
 
-    // 404 에러 처리 - helloGSM 참고
+    // TODO 404 에러 처리 - helloGSM 참고
 
 }

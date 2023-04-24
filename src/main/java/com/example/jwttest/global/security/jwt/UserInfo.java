@@ -1,6 +1,6 @@
 package com.example.jwttest.global.security.jwt;
 
-import com.example.jwttest.domain.user.domain.Role;
+import com.example.jwttest.domain.user.enums.Role;
 import com.example.jwttest.domain.user.domain.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

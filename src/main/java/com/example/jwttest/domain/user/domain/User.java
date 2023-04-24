@@ -1,5 +1,6 @@
 package com.example.jwttest.domain.user.domain;
 
+import com.example.jwttest.domain.user.enums.Role;
 import gauth.GAuthUserInfo;
 import jakarta.persistence.*;
 import lombok.*;

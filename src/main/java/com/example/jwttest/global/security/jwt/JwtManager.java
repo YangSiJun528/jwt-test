@@ -1,6 +1,6 @@
 package com.example.jwttest.global.security.jwt;
 
-import com.example.jwttest.domain.user.domain.Role;
+import com.example.jwttest.domain.user.enums.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
