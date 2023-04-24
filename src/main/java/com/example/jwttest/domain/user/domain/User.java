@@ -1,11 +1,9 @@
 package com.example.jwttest.domain.user.domain;
 
-import com.example.jwttest.domain.user.enums.Authority;
 import gauth.GAuthUserInfo;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -14,7 +12,8 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Entity(name = "`user`")
 public class User {
-    @Id @Column(name = "user_id")
+    @Id
+    @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String email;

@@ -1,57 +1,68 @@
 package com.example.jwttest.domain.user.controller;
 
+import com.example.jwttest.domain.user.dto.RefreshTokenReqDto;
+import com.example.jwttest.domain.user.dto.TokenResDto;
+import com.example.jwttest.domain.user.service.RefreshTokenService;
+import com.example.jwttest.domain.user.service.SignInService;
+import com.example.jwttest.domain.user.service.UserQuery;
 import com.example.jwttest.global.security.gauth.GauthEnvironment;
 import gauth.GAuth;
 import gauth.GAuthToken;
 import gauth.GAuthUserInfo;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
 @Slf4j
 @Controller
 @RequestMapping("auth")
+@RequiredArgsConstructor
 public class UserController {
 
     private final GauthEnvironment env;
+    private final SignInService signInService;
+    private final RefreshTokenService refreshTokenService;
+    private final UserQuery userQuery;
 
     private final GAuth gAuth;
 
-    private String CLIENT_ID;
-    private String CLIENT_SECRET;
-    private String REDIRECT_URI;
-
-    public UserController(GauthEnvironment env, GAuth gAuth) {
-        this.env = env;
-        this.CLIENT_ID = env.getClientId();
-        this.CLIENT_SECRET = env.getClientSecret();
-        this.REDIRECT_URI = env.getRedirectUri();
-        this.gAuth = gAuth;
-    }
 
     @GetMapping("gauth/code")
-    public ResponseEntity<String> gauthCode(@RequestParam(value="code") String code) throws IOException {
+    public ResponseEntity<TokenResDto> gauthCode(@RequestParam(value="code") String code) throws IOException {
 
-        GAuthToken generateToken = gAuth.generateToken(code, CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+        GAuthToken generateToken = gAuth.generateToken(code, env.getClientId(), env.getClientSecret(), env.getRedirectUri());
         GAuthUserInfo gAuthUserInfo = gAuth.getUserInfo(generateToken.getAccessToken());
 
-        return ResponseEntity.ok().body(gAuthUserInfo.toString());
+        return ResponseEntity.ok().body(signInService.execute(gAuthUserInfo));
     }
 
+    // TODO 리다이렉트 주소가 프론트여야 함
+    //  프론트에서 인증사이트로 이동 -> 인증 이후 리다이렉트 -> 프론트에서 받음 -> 서버로 코드 전송 -> 서버에서 인증 이후 ok 처리
     @GetMapping("login") // http://localhost:8080/auth/login
     public void login(HttpServletResponse httpServletResponse) {
-        log.info("CLIENT_ID : {}", CLIENT_ID);
-        log.info("REDIRECT_URL : {}", REDIRECT_URI);
         try {
-            httpServletResponse.sendRedirect(String.format("https://gauth.co.kr/login?client_id=%s&redirect_uri=%s", CLIENT_ID, REDIRECT_URI));
+            httpServletResponse.sendRedirect(String.format("https://gauth.co.kr/login?client_id=%s&redirect_uri=%s", env.getClientId(), env.getRedirectUri()));
         } catch (IOException e) {
             throw new RuntimeException("IOException has occurred",e);
         }
+    }
+
+    @GetMapping("user")
+    public void user() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        log.info("auth.getPrincipal() : {}", auth.getPrincipal());
+    }
+
+    @PostMapping("refresh")
+    public ResponseEntity<TokenResDto> refresh(@Valid @RequestBody RefreshTokenReqDto refreshTokenReqDto) {
+        return ResponseEntity.ok().body(refreshTokenService.execute(refreshTokenReqDto));
     }
 }

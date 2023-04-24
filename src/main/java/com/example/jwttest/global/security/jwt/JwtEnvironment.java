@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "jwt")
 public final class JwtEnvironment {
     private final String secretKey;
-    private final String accessExpiration;
-    private final String refreshExpiration;
+    private final Long accessExpiration;
+    private final Long refreshExpiration;
+    private final String issuer;
 }
