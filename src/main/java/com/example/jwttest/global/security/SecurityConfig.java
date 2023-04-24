@@ -1,6 +1,7 @@
 package com.example.jwttest.global.security;
 
 import com.example.jwttest.global.security.jwt.JwtAuthenticationFilter;
+import com.example.jwttest.global.security.jwt.SignOutHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +20,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
-    //private final LogoutHandler logoutHandler;
+    private final SignOutHandler signOutHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -42,7 +43,7 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/v1/auth/logout")
-//                        .addLogoutHandler(logoutHandler)
+                        .addLogoutHandler(signOutHandler)
                         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

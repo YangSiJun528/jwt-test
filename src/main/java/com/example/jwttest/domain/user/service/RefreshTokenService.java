@@ -9,7 +9,6 @@ import com.example.jwttest.domain.user.repository.UserRepository;
 import com.example.jwttest.global.exception.error.ExpectedException;
 import com.example.jwttest.global.security.jwt.JwtManager;
 import com.example.jwttest.global.security.jwt.UserInfo;
-import gauth.GAuthUserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class RefreshTokenService {
 
     public TokenResDto execute(RefreshTokenReqDto refreshTokenReqDto) {
         String refreshToken = refreshTokenReqDto.refreshToken();
-        if(!jwtManager.validate(refreshToken)) {
+        if (!jwtManager.validate(refreshToken)) {
             throw new ExpectedException("유효하지 않은 Token입니다", HttpStatus.BAD_REQUEST);
         }
         RefreshToken token = tokenRepository.findByToken(refreshToken)
