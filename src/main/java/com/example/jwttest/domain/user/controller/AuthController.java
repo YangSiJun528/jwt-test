@@ -48,6 +48,10 @@ public class AuthController {
 
     // TODO 리다이렉트 주소가 프론트여야 함
     //  프론트에서 인증사이트로 이동 -> 인증 이후 리다이렉트 -> 프론트에서 받음 -> 서버로 코드 전송 -> 서버에서 인증 이후 ok 처리
+    //  생각해보니 코드 받는거까지 프론트에서 하는게 맞음
+    //  에초에 그럼 클라이언트한테 서버에 a태그로 이동하는게 노출되니까
+    //  스프링에서 리다이렉트 해주는 기능을 제공하는 이유는 예전에 JSP 처럼 웹까지 함께 맡을 때 사용하다고 한거고,
+    //  GCMS도 물어보니까 코드만 서버로 보내준다고 함
     @GetMapping("signin") // http://localhost:8080/auth/login
     public void signIn(HttpServletResponse httpServletResponse) {
         try {
