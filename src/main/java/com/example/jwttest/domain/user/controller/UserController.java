@@ -7,6 +7,7 @@ import com.example.jwttest.global.security.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,8 +20,7 @@ public class UserController {
     private final UserQuery userQuery;
 
     @GetMapping("user")
-    public ResponseEntity<UserResDto> user() {
-        UserInfo userInfo = SecurityUtil.getUserInfo();
+    public ResponseEntity<UserResDto> user(@AuthenticationPrincipal UserInfo userInfo) {
         return ResponseEntity.ok().body(userQuery.execute(userInfo.userId()));
     }
 }

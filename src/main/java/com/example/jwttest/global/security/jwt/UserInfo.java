@@ -21,7 +21,7 @@ public record UserInfo(UUID userId, Role userRole) implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(userId.toString()));
+        return List.of(new SimpleGrantedAuthority(userRole.name()));
     }
 
     @Override
@@ -30,9 +30,7 @@ public record UserInfo(UUID userId, Role userRole) implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
-        return userRole.name();
-    }
+    public String getUsername() { return userId.toString(); }
 
     @Override
     public boolean isAccountNonExpired() {
