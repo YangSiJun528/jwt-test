@@ -1,7 +1,7 @@
 package com.example.jwttest.domain.user.service;
 
 import com.example.jwttest.domain.user.domain.User;
-import com.example.jwttest.domain.user.dto.UserResDto;
+import com.example.jwttest.domain.user.dto.UserDto;
 import com.example.jwttest.domain.user.repository.UserRepository;
 import com.example.jwttest.global.exception.error.ExpectedException;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +15,9 @@ import java.util.UUID;
 public class UserQuery {
     private final UserRepository userRepository;
 
-    public UserResDto execute(UUID userId) {
+    public UserDto execute(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ExpectedException("Token과 대응되는 User가 존재하지 않습니다", HttpStatus.BAD_REQUEST));
-        return UserResDto.from(user);
+        return UserDto.from(user);
     }
 }
