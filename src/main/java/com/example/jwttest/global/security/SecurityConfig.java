@@ -35,8 +35,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(httpRequests -> httpRequests
                         .requestMatchers("/h2/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/user/**").authenticated()
-                        .requestMatchers("/post/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .logout(logout -> logout
