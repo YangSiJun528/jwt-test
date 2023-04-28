@@ -3,7 +3,6 @@ package com.example.jwttest.domain.summoner.service;
 import com.example.jwttest.domain.riot.RiotApiEnvironment;
 import com.example.jwttest.domain.summoner.dto.SummonerDto;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class SummonerRiotApiService {

@@ -7,15 +7,12 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-public class CreateSummonerService {
+public class SummonerQuery {
 //    SummonerRepository summonerRepository;
 //    SummonerRiotApiService riotApiService;
 //
 //    public SummonerDto execute(SummonerDto summonerDto, UUID userId) {
 //        summonerRepository.findByUserId(userId)
-//                .orElseGet(riotApiService)
 //        return
 //    }
-
-
 }
