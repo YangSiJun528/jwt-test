@@ -1,6 +1,6 @@
 package com.example.jwttest.domain.match.controller;
 
-import com.example.jwttest.domain.match.dto.Match;
+import com.example.jwttest.domain.match.dto.MatchDto;
 import com.example.jwttest.domain.match.service.MatchRiotApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class MatchController {
     private final MatchRiotApiService matchRiotApiService;
 
     @GetMapping("/matches/{matchId}")
-    public ResponseEntity<Match> getSummonerByName(@PathVariable String matchId) {
+    public ResponseEntity<MatchDto> getSummonerByName(@PathVariable String matchId) {
         return ResponseEntity.status(HttpStatus.OK).body(matchRiotApiService.getMatchByMatchId(matchId));
     }
 }
