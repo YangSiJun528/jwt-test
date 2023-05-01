@@ -18,6 +18,7 @@ public class Match {
     @Column(nullable = false, unique = true)
     String matchId;
 
+    
     @Column(nullable = false, unique = true)
     Boolean win;
 
