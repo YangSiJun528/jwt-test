@@ -4,7 +4,9 @@ import com.example.jwttest.domain.user.enums.Role;
 import gauth.GAuthUserInfo;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -26,6 +28,8 @@ public class User {
     private String profileUrl;
     private String gAuthRole;
     private Role role;
+    @CreatedDate
+    private LocalDateTime createdDate;
 
     public static User from(GAuthUserInfo info) {
         return User.builder()
@@ -39,6 +43,7 @@ public class User {
                 .profileUrl(info.getProfileUrl())
                 .gAuthRole(info.getRole())
                 .role(Role.ROLE_USER)
+                .createdDate(null)
                 .build();
     }
 }
