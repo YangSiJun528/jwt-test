@@ -24,7 +24,7 @@ public class Match {
     @Column(nullable = false, unique = true)
     Map<String, Object> json;
 
-    @OneToMany(mappedBy = "match")
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
     private List<MatchUser> matchUsers = new ArrayList<>();
 
 }

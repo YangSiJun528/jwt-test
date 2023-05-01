@@ -1,7 +1,6 @@
 package com.example.jwttest.domain.statistics.domain;
 
 import com.example.jwttest.domain.summoner.domain.Summoner;
-import com.example.jwttest.domain.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,7 +17,7 @@ public class Statistics {
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     Summoner summoner;
 
     Integer maxWinStreak;

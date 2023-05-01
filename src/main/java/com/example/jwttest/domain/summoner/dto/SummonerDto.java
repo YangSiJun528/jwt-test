@@ -6,7 +6,7 @@ import com.example.jwttest.domain.user.domain.User;
 import java.util.UUID;
 
 public record SummonerDto(
-        String id,
+        String summonerApiId,
         String accountId,
         String puuid,
         String name,
@@ -17,7 +17,7 @@ public record SummonerDto(
     public Summoner toEntity(User user) {
         return Summoner.builder()
                 .user(user)
-                .id(this.id)
+                .summonerApiId(this.summonerApiId)
                 .accountId(this.accountId)
                 .puuid(this.puuid)
                 .name(this.name)

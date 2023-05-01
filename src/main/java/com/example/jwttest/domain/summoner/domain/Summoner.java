@@ -31,6 +31,7 @@ public class Summoner {
     @ManyToOne
     private User user;
 
-    @OneToMany(mappedBy = "summoner")
+    @Builder.Default
+    @OneToMany(mappedBy = "summoner", fetch = FetchType.LAZY)
     private List<MatchUser> matchUsers = new ArrayList<>();
 }
