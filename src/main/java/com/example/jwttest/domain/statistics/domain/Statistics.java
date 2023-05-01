@@ -25,7 +25,6 @@ public class Statistics {
     Integer maxLoseStreak;
     Integer curWinStreak;
     Integer curLoseStreak;
-    Long level;
     Long winCount;
     Long loseCount;
     LocalDateTime modifiedDate; // 최소 생성 시 생성 당일 기준 3개월 전 시점, 배치 돌리고 나서 업데이트
