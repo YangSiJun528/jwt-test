@@ -1,5 +1,10 @@
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 spring:
   h2:
@@ -11,7 +16,6 @@ spring:
     username: sa
     password:
     driverClassName: org.h2.Driver
-
   jpa:
     hibernate:
       ddl-auto: create
