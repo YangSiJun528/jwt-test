@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@EnableBatchProcessing // 배티 기능 활성화
 @EnableConfigurationProperties({GauthEnvironment.class, JwtEnvironment.class})
 public class JwtTestApplication {
 
