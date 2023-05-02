@@ -10,11 +10,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 
 @Slf4j
 @Component
@@ -24,14 +20,23 @@ public class MyBatchRunner implements CommandLineRunner {
     private final JobLauncher jobLauncher;
 
     public void runJob() throws Exception {
-        Job job = jobLocator.getJob("simpleJob");
-        JobParameters jobParameters = new JobParametersBuilder()
+        Job testJob = jobLocator.getJob("simpleJob");
+        JobParameters testJobParameters = new JobParametersBuilder()
                 .addLocalDateTime("date", LocalDateTime.now())
+                .addString("status", "test_status_1234")
+                .toJobParameters();
+        log.warn("testJob 실행");
+
+        jobLauncher.run(testJob, testJobParameters);
+
+        Job job1 = jobLocator.getJob("simpleJob");
+        JobParameters job1Parameters = new JobParametersBuilder()
+                .addLocalDateTime("date", LocalDateTime.now())
+                .addString("status", "test_status_1234")
                 .toJobParameters();
         log.warn("job 실행");
-
         /* batch 수행 */
-        jobLauncher.run(job, jobParameters);
+        jobLauncher.run(job1, job1Parameters);
     }
 
     @Override
