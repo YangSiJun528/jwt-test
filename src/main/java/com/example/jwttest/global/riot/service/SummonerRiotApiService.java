@@ -1,7 +1,7 @@
-package com.example.jwttest.domain.summoner.service;
+package com.example.jwttest.global.riot.service;
 
-import com.example.jwttest.global.riot.RiotApiEnvironment;
 import com.example.jwttest.domain.summoner.dto.SummonerDto;
+import com.example.jwttest.global.riot.RiotApiEnvironment;
 import org.springframework.stereotype.Service;
 
 @Service
