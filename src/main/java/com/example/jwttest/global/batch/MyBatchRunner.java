@@ -31,7 +31,7 @@ public class MyBatchRunner implements CommandLineRunner {
 
         Job job1 = jobLocator.getJob("renewMatchJob");
         JobParameters job1Parameters = new JobParametersBuilder()
-                .addLocalDateTime("date", LocalDateTime.now())
+                .addLocalDateTime("dateTime", LocalDateTime.now())
                 .toJobParameters();
         log.warn("job 실행");
         /* batch 수행 */

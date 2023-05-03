@@ -34,6 +34,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Configuration
@@ -48,6 +49,40 @@ public class RenewalMatchJobConfiguration {
 
     private final MatchRiotApiService matchRiotApiService;
 
+    private List<Summoner> dummySummoner() {
+        Summoner s1 = Summoner.builder()
+                .id(UUID.randomUUID())
+                .summonerApiId("DIiLDPb8BjQewHIbqm1adVUIAObCRiA-wHgAU7mKaGjRNgI")
+                .accountId("Pkh25cyxBN_6RQF3qD9WZZ1azpFJj-cqWtsqpYEVe2zMz_g")
+                .puuid("JRv9GZ1NllHPUY1DXqQZ66yWwbDNIdi8UDeOtW-4pFxPQMhr17Vc5x1yrhWFehSvyeP2sU3rWiSO2g")
+                .name("메추리 알빠노")
+                .profileIconId(5389)
+                .revisionDate(1683041620434L)
+                .summonerLevel(2448)
+                .build();
+        Summoner s2 = Summoner.builder()
+                .id(UUID.randomUUID())
+                .summonerApiId("vkqcHZK6RT4NX4UfwIe3zWcuZsBRTHhVR4lnKD-JAUWVlOY")
+                .accountId("vz3-jvm9gb1SODe3jRshCg1xzkVOXTkt6YbIuy44DlIVSqE")
+                .puuid("ad951W1ExSx9ho7R4eYMZvAMB8wEMLvh-Z-azO1zh3gFkGqFg3ESYZySp9ed-O-IbY0N7mMWT813Fg")
+                .name("잠은 뒤져서 잔다")
+                .profileIconId(5464)
+                .revisionDate(1683034046273L)
+                .summonerLevel(2422)
+                .build();
+        Summoner s3 = Summoner.builder()
+                .id(UUID.randomUUID())
+                .summonerApiId("-YWoVxmeUI-MpR8YiM0UtRUcAwbYfG_ZwDjTrf5O1hR5re84DZ5u9uAxBA")
+                .accountId("eXGT3kV7bOxG3j0_kfl8WY7l9_sAJp18e-fe9ZzrsIFtcznkqeV9uiuv")
+                .puuid("pX1roodpuAb1soUN394FlIpYxPmXJyrsdWUYhQEEpM9SjT5sW-pKWhVXW09_3BusJyxAUQy7Z2n7-A")
+                .name("Faker")
+                .profileIconId(6)
+                .revisionDate(1683082584000L)
+                .summonerLevel(45)
+                .build();
+        return List.of(s1, s2, s3);
+    }
+
     @Getter
     @AllArgsConstructor
     public class JobParameter {
@@ -61,51 +96,6 @@ public class RenewalMatchJobConfiguration {
                 .start(step)
                 .build();
     }
-
-    public class MatchIdItemWriter extends ListItemWriter<List<String>> {
-        @Override
-        public void write(Chunk<? extends List<String>> chunk) throws Exception {
-            List<? extends List<String>> chunkItems = chunk.getItems();
-            log.warn(chunkItems.toString());
-            for (List<String> matchIds : chunkItems) {
-                log.warn(matchIds.toString());
-                InMemCache.getInstance().addAll(matchIds);
-            }
-        }
-    }
-
-    public class MatchIdItemProcessor implements ItemProcessor<Summoner, List<String>> {
-
-        private final MatchRiotApiService matchRiotApiService;
-        private final LocalDateTime dateTime;
-
-        public MatchIdItemProcessor(MatchRiotApiService matchRiotApiService, LocalDateTime dateTime) {
-            this.matchRiotApiService = matchRiotApiService;
-            this.dateTime = dateTime;
-        }
-
-        @Override
-        public List<String> process(Summoner summoner) throws Exception {
-            List<String> matchIds = new ArrayList<>();
-            int startIndex = 0;
-            int fetchedCount;
-            do {
-                List<String> newMatchIds = matchRiotApiService.getMatchIdsByPuuid(
-                        summoner.getPuuid(),
-                        startIndex,
-                        100,
-                        Timestamp.valueOf(dateTime.minusDays(1L)),
-                        Timestamp.valueOf(dateTime)
-                );
-                fetchedCount = newMatchIds.size();
-                matchIds.addAll(newMatchIds);
-                startIndex += 100;
-            } while (fetchedCount == 100);
-            return matchIds;
-        }
-
-    }
-
     @Bean(JOB_NAME + "jobParameter")
     @JobScope
     public JobParameter jobParameter(
@@ -122,36 +112,60 @@ public class RenewalMatchJobConfiguration {
     ) {
         log.warn(BEAN_PREFIX + "step");
         return new StepBuilder(BEAN_PREFIX + "step", jobRepository)
-                .<List<String>, List<String>>chunk(100, transactionManager)
+                .<Summoner, List<String>>chunk(100, transactionManager)
                 .reader(itemReader())
-//                .processor(itemProcessor())
+                .processor(itemProcessor())
                 .writer(itemWriter())
                 .build();
     }
 
     @Bean(BEAN_PREFIX + "itemReader")
     @StepScope
-    public ItemReader itemReader() {
+    public ItemReader<Summoner> itemReader() {
         log.warn(BEAN_PREFIX + "itemReader");
-
-        ListItemReader write = new ListItemReader<>(List.of("pX1roodpuAb1soUN394FlIpYxPmXJyrsdWUYhQEEpM9SjT5sW-pKWhVXW09_3BusJyxAUQy7Z2n7-A", "hVBdIdq9d-W-vSxm__JIqAnM0jIp8Htr9BEMRSOiya45gep4wXhKWjjIgg1R8Qsf23SbO6HN2iUCXQ"));
-
-        return write;
+        return new ListItemReader<>(dummySummoner());
 
     }
 
     @Bean(BEAN_PREFIX + "itemProcessor")
     @StepScope
-    public MatchIdItemProcessor itemProcessor() {
+    public ItemProcessor<Summoner, List<String>> itemProcessor() {
         log.warn(BEAN_PREFIX + "itemProcessor");
-        return new MatchIdItemProcessor(matchRiotApiService, jobParameter.getDateTime());
+        return summoner -> {
+                List<String> matchIds = new ArrayList<>();
+                int startIndex = 0;
+                int fetchedCount;
+                do {
+                    List<String> newMatchIds = matchRiotApiService.getMatchIdsByPuuid(
+                            summoner.getPuuid(),
+                            startIndex,
+                            100,
+                            jobParameter.getDateTime().minusDays(1L),
+                            jobParameter.getDateTime()
+                    );
+                    fetchedCount = newMatchIds.size();
+                    matchIds.addAll(newMatchIds);
+                    startIndex += 100;
+                } while (fetchedCount == 100);
+                log.warn(matchIds.toString());
+                return matchIds;
+        };
     }
 
     @Bean(BEAN_PREFIX + "itemWriter")
     @StepScope
-    public MatchIdItemWriter itemWriter() {
+    public ItemWriter<List<String>> itemWriter() {
         log.warn(BEAN_PREFIX + "itemWriter");
-        return new MatchIdItemWriter();
+        return new ItemWriter<List<String>>() {
+            @Override
+            public void write(Chunk<? extends List<String>> chunk) throws Exception {
+                List<? extends List<String>> chunkItems = chunk.getItems();
+                log.warn(chunkItems.toString());
+                for (List<String> matchIds : chunkItems) {
+                    InMemCache.getInstance().addAll(matchIds);
+                }
+            }
+        };
     }
 
 }
