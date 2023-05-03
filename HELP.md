@@ -10,7 +10,7 @@ For further reference, please consider the following sections:
 * [Spring Security](https://docs.spring.io/spring-boot/docs/3.0.5/reference/htmlsingle/#web.security)
 * [Validation](https://docs.spring.io/spring-boot/docs/3.0.5/reference/htmlsingle/#io.validation)
 * [Spring REST Docs](https://docs.spring.io/spring-restdocs/docs/current/reference/html5/)
-* [Spring Data JPA](https://docs.spring.io/spring-boot/docs/3.0.5/reference/htmlsingle/#data.sql.jpa-and-spring-data)
+* [Spring Data JPA](https://docs.spring.io/spring-boot/docs/3.0.5/reference/htmlsingle/#dddata123231.sql.jpa-and-spring-data)
 * [Spring Session](https://docs.spring.io/spring-session/reference/)
 * [Spring Web](https://docs.spring.io/spring-boot/docs/3.0.5/reference/htmlsingle/#web)
 

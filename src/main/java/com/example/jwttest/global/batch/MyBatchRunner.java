@@ -20,19 +20,18 @@ public class MyBatchRunner implements CommandLineRunner {
     private final JobLauncher jobLauncher;
 
     public void runJob() throws Exception {
-        Job testJob = jobLocator.getJob("simpleJob");
-        JobParameters testJobParameters = new JobParametersBuilder()
-                .addLocalDateTime("date", LocalDateTime.now())
-                .addString("status", "test_status_1234")
-                .toJobParameters();
-        log.warn("testJob 실행");
+//        Job testJob = jobLocator.getJob("simpleJob");
+//        JobParameters testJobParameters = new JobParametersBuilder()
+//                .addLocalDateTime("date", LocalDateTime.now())
+//                .addString("status", "test_status_1234")
+//                .toJobParameters();
+//        log.warn("testJob 실행");
+//
+//        jobLauncher.run(testJob, testJobParameters);
 
-        jobLauncher.run(testJob, testJobParameters);
-
-        Job job1 = jobLocator.getJob("simpleJob");
+        Job job1 = jobLocator.getJob("renewMatchJob");
         JobParameters job1Parameters = new JobParametersBuilder()
                 .addLocalDateTime("date", LocalDateTime.now())
-                .addString("status", "test_status_1234")
                 .toJobParameters();
         log.warn("job 실행");
         /* batch 수행 */
