@@ -22,6 +22,8 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.support.ListItemReader;
+import org.springframework.batch.item.support.ListItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,11 +62,13 @@ public class RenewalMatchJobConfiguration {
                 .build();
     }
 
-    public class MatchIdItemWriter implements ItemWriter<List<String>> {
+    public class MatchIdItemWriter extends ListItemWriter<List<String>> {
         @Override
         public void write(Chunk<? extends List<String>> chunk) throws Exception {
             List<? extends List<String>> chunkItems = chunk.getItems();
+            log.warn(chunkItems.toString());
             for (List<String> matchIds : chunkItems) {
+                log.warn(matchIds.toString());
                 InMemCache.getInstance().addAll(matchIds);
             }
         }
@@ -118,23 +122,22 @@ public class RenewalMatchJobConfiguration {
     ) {
         log.warn(BEAN_PREFIX + "step");
         return new StepBuilder(BEAN_PREFIX + "step", jobRepository)
-                .<Summoner, List<String>>chunk(100, transactionManager)
-                .reader(itemReader(entityManagerFactory))
-                .processor(itemProcessor())
+                .<List<String>, List<String>>chunk(100, transactionManager)
+                .reader(itemReader())
+//                .processor(itemProcessor())
                 .writer(itemWriter())
                 .build();
     }
 
     @Bean(BEAN_PREFIX + "itemReader")
     @StepScope
-    public JpaPagingItemReader<Summoner> itemReader(EntityManagerFactory entityManagerFactory) {
+    public ItemReader itemReader() {
         log.warn(BEAN_PREFIX + "itemReader");
-        return new JpaPagingItemReaderBuilder<Summoner>()
-                .name(BEAN_PREFIX + "itemReader")
-                .entityManagerFactory(entityManagerFactory)
-                .pageSize(CHUNK_SIZE)
-                .queryString("SELECT s FROM Summoner s")
-                .build();
+
+        ListItemReader write = new ListItemReader<>(List.of("pX1roodpuAb1soUN394FlIpYxPmXJyrsdWUYhQEEpM9SjT5sW-pKWhVXW09_3BusJyxAUQy7Z2n7-A", "hVBdIdq9d-W-vSxm__JIqAnM0jIp8Htr9BEMRSOiya45gep4wXhKWjjIgg1R8Qsf23SbO6HN2iUCXQ"));
+
+        return write;
+
     }
 
     @Bean(BEAN_PREFIX + "itemProcessor")
