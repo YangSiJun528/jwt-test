@@ -1,10 +1,7 @@
 package com.example.jwttest.domain.match.domain;
 
 import com.example.jwttest.domain.match.converter.MapToJsonConverter;
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -19,6 +16,7 @@ public class Match {
     @Column(name = "match_id")
     String id;
 
+    @Lob
     @Convert(converter = MapToJsonConverter.class)
     @Column(nullable = false, unique = true)
     Map<String, Object> json;
