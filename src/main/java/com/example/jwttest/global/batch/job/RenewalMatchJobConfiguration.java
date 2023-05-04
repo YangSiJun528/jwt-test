@@ -22,7 +22,10 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
+import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,43 +51,6 @@ public class RenewalMatchJobConfiguration {
     private final JobParameter jobParameter;
 
     private final MatchRiotApiService matchRiotApiService;
-
-    private List<Summoner> dummySummoner() {
-        Summoner s1 = Summoner.builder()
-                .id(UUID.randomUUID())
-                .summonerApiId("DIiLDPb8BjQewHIbqm1adVUIAObCRiA-wHgAU7mKaGjRNgI")
-                .accountId("Pkh25cyxBN_6RQF3qD9WZZ1azpFJj-cqWtsqpYEVe2zMz_g")
-                .puuid("JRv9GZ1NllHPUY1DXqQZ66yWwbDNIdi8UDeOtW-4pFxPQMhr17Vc5x1yrhWFehSvyeP2sU3rWiSO2g")
-                .name("메추리 알빠노")
-                .profileIconId(5389)
-                .profileIconIdUri(RiotApiUtil.getImgUri(5389))
-                .revisionDate(1683041620434L)
-                .summonerLevel(2448)
-                .build();
-        Summoner s2 = Summoner.builder()
-                .id(UUID.randomUUID())
-                .summonerApiId("vkqcHZK6RT4NX4UfwIe3zWcuZsBRTHhVR4lnKD-JAUWVlOY")
-                .accountId("vz3-jvm9gb1SODe3jRshCg1xzkVOXTkt6YbIuy44DlIVSqE")
-                .puuid("ad951W1ExSx9ho7R4eYMZvAMB8wEMLvh-Z-azO1zh3gFkGqFg3ESYZySp9ed-O-IbY0N7mMWT813Fg")
-                .name("잠은 뒤져서 잔다")
-                .profileIconId(5464)
-                .profileIconIdUri(RiotApiUtil.getImgUri(5464))
-                .revisionDate(1683034046273L)
-                .summonerLevel(2422)
-                .build();
-        Summoner s3 = Summoner.builder()
-                .id(UUID.randomUUID())
-                .summonerApiId("-YWoVxmeUI-MpR8YiM0UtRUcAwbYfG_ZwDjTrf5O1hR5re84DZ5u9uAxBA")
-                .accountId("eXGT3kV7bOxG3j0_kfl8WY7l9_sAJp18e-fe9ZzrsIFtcznkqeV9uiuv")
-                .puuid("pX1roodpuAb1soUN394FlIpYxPmXJyrsdWUYhQEEpM9SjT5sW-pKWhVXW09_3BusJyxAUQy7Z2n7-A")
-                .name("Faker")
-                .profileIconId(6)
-                .profileIconIdUri(RiotApiUtil.getImgUri(6))
-                .revisionDate(1683082584000L)
-                .summonerLevel(45)
-                .build();
-        return List.of(s1, s2, s3);
-    }
 
     @Getter
     @AllArgsConstructor
@@ -115,24 +81,41 @@ public class RenewalMatchJobConfiguration {
     @Bean(BEAN_PREFIX + "step1")
     @JobScope
     public Step step1(JobRepository jobRepository,
-                      PlatformTransactionManager transactionManager
+                      PlatformTransactionManager transactionManager,
+                      @Qualifier(BEAN_PREFIX + "itemReader1") ItemReader<Summoner> itemReader
     ) {
         log.warn(BEAN_PREFIX + "step1");
         return new StepBuilder(BEAN_PREFIX + "step1", jobRepository)
                 .<Summoner, List<String>>chunk(100, transactionManager)
-                .reader(itemReader1())
+                .reader(itemReader)
                 .processor(itemProcessor1())
                 .writer(itemWriter1())
                 .build();
     }
 
+//    @Bean(BEAN_PREFIX + "itemReader1")
+//    @StepScope
+//    public ItemReader<Summoner> itemReader1() {
+//        log.warn(BEAN_PREFIX + "itemReader1");
+//        return new ListItemReader<>(RiotApiUtil.dummySummoner());
+//
+//    }
+
+    //ItemReader를 사용하면 DI가 안됨
+    //https://www.inflearn.com/questions/482396/stepscope-jpaitemreader%EC%97%90%EC%84%9C-entitymanager-null-pointer-exception-%EB%B0%9C%EC%83%9D-%EB%AC%B8%EC%A0%9C-%EB%8F%84%EC%99%80%EC%A3%BC%EC%84%B8%EC%9A%94
     @Bean(BEAN_PREFIX + "itemReader1")
     @StepScope
-    public ItemReader<Summoner> itemReader1() {
+    public JpaPagingItemReader<Summoner> itemReader1(EntityManagerFactory entityManagerFactory) {
         log.warn(BEAN_PREFIX + "itemReader1");
-        return new ListItemReader<>(dummySummoner());
+        return new JpaPagingItemReaderBuilder<Summoner>()
+                .name(BEAN_PREFIX + "itemReader1")
+                .entityManagerFactory(entityManagerFactory)
+                .pageSize(CHUNK_SIZE)
+                .queryString("SELECT s FROM Summoner s")
+                .build();
 
     }
+
 
     @Bean(BEAN_PREFIX + "itemProcessor1")
     @StepScope

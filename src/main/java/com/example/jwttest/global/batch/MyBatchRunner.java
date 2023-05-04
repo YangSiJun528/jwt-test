@@ -1,5 +1,7 @@
 package com.example.jwttest.global.batch;
 
+import com.example.jwttest.domain.summoner.repository.SummonerRepository;
+import com.example.jwttest.global.riot.RiotApiUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 public class MyBatchRunner implements CommandLineRunner {
     private final JobLocator jobLocator;
     private final JobLauncher jobLauncher;
+    private final SummonerRepository summonerRepository;
 
     public void runJob() throws Exception {
         Job testJob = jobLocator.getJob("simpleJob");
@@ -40,7 +43,12 @@ public class MyBatchRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        init();
         runJob();
+    }
+
+    private void init() {
+        summonerRepository.saveAll(RiotApiUtil.dummySummoner());
     }
 }
 
