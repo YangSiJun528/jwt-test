@@ -23,6 +23,7 @@ public class Summoner {
     private String puuid;
     private String name;
     private int profileIconId;
+    private String profileIconIdUri;
     private long revisionDate;
     private int summonerLevel;
 

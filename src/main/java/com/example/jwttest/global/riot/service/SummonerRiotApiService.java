@@ -1,7 +1,7 @@
 package com.example.jwttest.global.riot.service;
 
 import com.example.jwttest.domain.summoner.dto.SummonerDto;
-import com.example.jwttest.global.riot.RiotApiEnvironment;
+import com.example.jwttest.global.riot.RiotApiUtil;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,7 +20,7 @@ public class SummonerRiotApiService {
     }
 
     private SummonerDto getSummonerDto(String uriPath) {
-        String fullUri = BASE_URI + uriPath + "?api_key=" + RiotApiEnvironment.API_KEY;
-        return RiotApiEnvironment.REST.getForObject(fullUri, SummonerDto.class);
+        String fullUri = BASE_URI + uriPath + "?api_key=" + RiotApiUtil.API_KEY;
+        return RiotApiUtil.REST.getForObject(fullUri, SummonerDto.class);
     }
 }

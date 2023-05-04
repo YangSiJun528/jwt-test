@@ -1,12 +1,11 @@
 package com.example.jwttest.global.riot.service;
 
-import com.example.jwttest.global.riot.RiotApiEnvironment;
+import com.example.jwttest.global.riot.RiotApiUtil;
 import io.jsonwebtoken.lang.Assert;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -24,8 +23,8 @@ public class MatchRiotApiService {
     }
 
     private Map<String, Object> getApiMatch(String uriPath) {
-        String fullUri = BASE_URI + uriPath + "?api_key=" + RiotApiEnvironment.API_KEY;
-        return RiotApiEnvironment.REST.getForObject(fullUri, Map.class);
+        String fullUri = BASE_URI + uriPath + "?api_key=" + RiotApiUtil.API_KEY;
+        return RiotApiUtil.REST.getForObject(fullUri, Map.class);
     }
 
     // TODO 나중에 리팩토링
@@ -47,8 +46,8 @@ public class MatchRiotApiService {
 
         String uriPath = uriBuilder.build().toString();
 
-        String fullUri = BASE_URI + uriPath + "&api_key=" + RiotApiEnvironment.API_KEY;
-        return RiotApiEnvironment.REST.getForObject(fullUri, List.class);
+        String fullUri = BASE_URI + uriPath + "&api_key=" + RiotApiUtil.API_KEY;
+        return RiotApiUtil.REST.getForObject(fullUri, List.class);
     }
 
     public List<String> getMatchIdsByPuuid(String puuid) {

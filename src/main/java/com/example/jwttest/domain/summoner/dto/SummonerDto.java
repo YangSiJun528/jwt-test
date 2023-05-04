@@ -2,6 +2,7 @@ package com.example.jwttest.domain.summoner.dto;
 
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.domain.user.domain.User;
+import com.example.jwttest.global.riot.RiotApiUtil;
 
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public record SummonerDto(
                 .puuid(this.puuid)
                 .name(this.name)
                 .profileIconId(this.profileIconId)
+                .profileIconIdUri(RiotApiUtil.getImgUri(this.profileIconId))
                 .revisionDate(this.revisionDate)
                 .summonerLevel(this.summonerLevel)
                 .build();

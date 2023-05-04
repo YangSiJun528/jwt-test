@@ -3,6 +3,7 @@ package com.example.jwttest.global.batch.job;
 import com.example.jwttest.domain.match.domain.Match;
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.global.batch.InMemCache;
+import com.example.jwttest.global.riot.RiotApiUtil;
 import com.example.jwttest.global.riot.service.MatchRiotApiService;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
@@ -56,6 +57,7 @@ public class RenewalMatchJobConfiguration {
                 .puuid("JRv9GZ1NllHPUY1DXqQZ66yWwbDNIdi8UDeOtW-4pFxPQMhr17Vc5x1yrhWFehSvyeP2sU3rWiSO2g")
                 .name("메추리 알빠노")
                 .profileIconId(5389)
+                .profileIconIdUri(RiotApiUtil.getImgUri(5389))
                 .revisionDate(1683041620434L)
                 .summonerLevel(2448)
                 .build();
@@ -66,6 +68,7 @@ public class RenewalMatchJobConfiguration {
                 .puuid("ad951W1ExSx9ho7R4eYMZvAMB8wEMLvh-Z-azO1zh3gFkGqFg3ESYZySp9ed-O-IbY0N7mMWT813Fg")
                 .name("잠은 뒤져서 잔다")
                 .profileIconId(5464)
+                .profileIconIdUri(RiotApiUtil.getImgUri(5464))
                 .revisionDate(1683034046273L)
                 .summonerLevel(2422)
                 .build();
@@ -76,6 +79,7 @@ public class RenewalMatchJobConfiguration {
                 .puuid("pX1roodpuAb1soUN394FlIpYxPmXJyrsdWUYhQEEpM9SjT5sW-pKWhVXW09_3BusJyxAUQy7Z2n7-A")
                 .name("Faker")
                 .profileIconId(6)
+                .profileIconIdUri(RiotApiUtil.getImgUri(6))
                 .revisionDate(1683082584000L)
                 .summonerLevel(45)
                 .build();
