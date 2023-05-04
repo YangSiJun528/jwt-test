@@ -24,6 +24,7 @@ import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.batch.item.support.ListItemWriter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -91,7 +92,7 @@ public class RenewalMatchJobConfiguration {
     }
 
     @Bean
-    public Job RenewJob(JobRepository jobRepository, Step step) {
+    public Job RenewJob(JobRepository jobRepository, @Qualifier(BEAN_PREFIX + "step") Step step) {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .start(step)
                 .build();

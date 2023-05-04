@@ -9,10 +9,10 @@ server:
 spring:
   batch:
     jdbc:
-      initialize-schema: always
+      initialize-schema: always # Create Batch Meta Table
     job:
       enabled: false
-      name: ${job.name:EMPTY}
+      name: ${job.name:EMPTY} # for Multiple job
   h2:
     console:
       enabled: true
