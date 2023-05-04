@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -15,6 +17,12 @@ public class Match {
     @Id
     @Column(name = "match_id")
     String id;
+
+    @ElementCollection
+    @CollectionTable(name = "MatchSummonerIds", joinColumns =
+    @JoinColumn(name = "match_id")
+    )
+    private List<String> summonerIds;
 
     @Lob
     @Convert(converter = MapToJsonConverter.class)

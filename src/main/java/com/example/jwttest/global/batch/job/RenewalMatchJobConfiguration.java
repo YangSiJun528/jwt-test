@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Configuration
@@ -60,7 +61,7 @@ public class RenewalMatchJobConfiguration {
     }
 
     @Bean
-    public Job RenewJob(JobRepository jobRepository,
+    public Job renewJob(JobRepository jobRepository,
                         @Qualifier(BEAN_PREFIX + "step1") Step step1,
                         @Qualifier(BEAN_PREFIX + "step2") Step step2
     ) {
@@ -86,7 +87,7 @@ public class RenewalMatchJobConfiguration {
     ) {
         log.warn(BEAN_PREFIX + "step1");
         return new StepBuilder(BEAN_PREFIX + "step1", jobRepository)
-                .<Summoner, List<String>>chunk(100, transactionManager)
+                .<Summoner, List<String>>chunk(CHUNK_SIZE, transactionManager)
                 .reader(itemReader)
                 .processor(itemProcessor1())
                 .writer(itemWriter1())
@@ -189,8 +190,12 @@ public class RenewalMatchJobConfiguration {
         log.warn(BEAN_PREFIX + "itemProcessor2");
         return matchId -> {
             Map<String, Object> rs = matchRiotApiService.getMatchByMatchId(matchId);
+            Map<String, Object> info = (Map<String, Object>) rs.get("info");
+            List<Map<String, Object>> participants = (List<Map<String, Object>>) info.get("participants");
+            List<String> summonerIds = participants.stream().map((participant) -> participant.get("summonerId").toString()).toList();
             log.warn(rs.toString());
-            return new Match(matchId, rs);
+            log.warn(summonerIds.toString());
+            return new Match(matchId, summonerIds ,rs);
         };
     }
 
