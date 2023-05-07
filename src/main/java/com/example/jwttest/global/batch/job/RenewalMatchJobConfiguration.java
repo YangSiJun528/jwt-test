@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RenewalMatchJobConfiguration {
 
-    private int CHUNK_SIZE = 1;
+    private int CHUNK_SIZE = 100;
     private final String JOB_NAME = "renewMatchJob";
     private final String BEAN_PREFIX = JOB_NAME + "_";
 
@@ -60,8 +60,8 @@ public class RenewalMatchJobConfiguration {
         private final LocalDateTime dateTime;
     }
 
-    @Bean
-    public Job renewJob(JobRepository jobRepository,
+    @Bean(JOB_NAME)
+    public Job renewMatchJob(JobRepository jobRepository,
                         @Qualifier(BEAN_PREFIX + "step1") Step step1,
                         @Qualifier(BEAN_PREFIX + "step2") Step step2
     ) {
@@ -102,7 +102,7 @@ public class RenewalMatchJobConfiguration {
 //
 //    }
 
-    //ItemReader를 사용하면 DI가 안됨
+    //ItemReader만 직접 구현하는 방식으론 사용할 수 없음 - ItemStream도 구현해야 함
     //https://www.inflearn.com/questions/482396/stepscope-jpaitemreader%EC%97%90%EC%84%9C-entitymanager-null-pointer-exception-%EB%B0%9C%EC%83%9D-%EB%AC%B8%EC%A0%9C-%EB%8F%84%EC%99%80%EC%A3%BC%EC%84%B8%EC%9A%94
     @Bean(BEAN_PREFIX + "itemReader1")
     @StepScope
@@ -168,7 +168,7 @@ public class RenewalMatchJobConfiguration {
     ) {
         log.warn(BEAN_PREFIX + "step2");
         return new StepBuilder(BEAN_PREFIX + "step2", jobRepository)
-                .<String, Match>chunk(100, transactionManager)
+                .<String, Match>chunk(CHUNK_SIZE, transactionManager)
                 .reader(itemReader2())
                 .processor(itemProcessor2())
                 .writer(itemWriter2(entityManagerFactory))
@@ -195,10 +195,12 @@ public class RenewalMatchJobConfiguration {
             List<String> summonerIds = participants.stream().map((participant) -> participant.get("summonerId").toString()).toList();
             log.warn(rs.toString());
             log.warn(summonerIds.toString());
-            return new Match(matchId, summonerIds ,rs);
+            return new Match(matchId, summonerIds ,rs, jobParameter.getDateTime());
         };
     }
 
+    // 단순히 성능 면에서는 Jdbc Batch Insert가 더 좋음
+    // https://jojoldu.tistory.com/507
     @Bean(BEAN_PREFIX + "itemWriter2")
     @StepScope
     public ItemWriter<Match> itemWriter2(EntityManagerFactory entityManagerFactory) {

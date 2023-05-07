@@ -1,5 +1,6 @@
 package com.example.jwttest.domain.summoner.domain;
 
+import com.example.jwttest.domain.statistics.domain.Statistics;
 import com.example.jwttest.domain.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +27,9 @@ public class Summoner {
     private String profileIconIdUri;
     private long revisionDate;
     private int summonerLevel;
+
+    @OneToOne(mappedBy = "summoner")
+    private Statistics statistics;
 
     @ManyToOne
     private User user;
