@@ -2,6 +2,7 @@ package com.example.jwttest.global.batch.job;
 
 import com.example.jwttest.domain.statistics.domain.Statistics;
 import com.example.jwttest.domain.summoner.domain.Summoner;
+import com.example.jwttest.global.batch.InMemCacheStatistics;
 import com.example.jwttest.global.batch.dto.MatchStatisticsDto;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -61,11 +63,63 @@ public class RenewalStatisticsJobConfiguration {
 
     @Bean(JOB_NAME)
     public Job renewStatisticsJob(JobRepository jobRepository,
-                        @Qualifier(BEAN_PREFIX + "step1") Step step1
+                                  @Qualifier(BEAN_PREFIX + "step0") Step step0,
+                                  @Qualifier(BEAN_PREFIX + "step1") Step step1
     ) {
         return new JobBuilder(JOB_NAME, jobRepository)
-                .start(step1)
+                .start(step0)
+                .next(step1)
                 .build();
+    }
+
+    @Bean(BEAN_PREFIX + "step0")
+    @JobScope
+    public Step step0(JobRepository jobRepository,
+                      PlatformTransactionManager transactionManager,
+                      EntityManagerFactory entityManagerFactory
+                      ) {
+        log.warn(BEAN_PREFIX + "step0");
+        return new StepBuilder(BEAN_PREFIX + "step0", jobRepository)
+                .<Statistics, Statistics>chunk(CHUNK_SIZE, transactionManager)
+                .reader(itemReader0(entityManagerFactory))
+                .writer(itemWriter0())
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "itemReader0")
+    @StepScope
+    public JpaPagingItemReader<Statistics> itemReader0(EntityManagerFactory entityManagerFactory) {
+        log.warn(BEAN_PREFIX + "itemReader0");
+        Map<String, Object> parameterValues = new HashMap<>();
+        parameterValues.put("startDateTime", jobParameter.getDateTime().minusDays(1L));
+        parameterValues.put("endDateTime", jobParameter.getDateTime());
+
+        return new JpaPagingItemReaderBuilder<Statistics>()
+                .name(BEAN_PREFIX + "itemReader0")
+                .entityManagerFactory(entityManagerFactory)
+                .pageSize(CHUNK_SIZE)
+                .queryString("SELECT s.statistics " +
+                        "FROM Match m " +
+                        "JOIN MatchSummoner sm ON sm.match = m " +
+                        "JOIN Summoner s ON s = sm.summoner " +
+                        "WHERE m.createAt > :startDateTime AND m.createAt <= :endDateTime"
+                )
+                .parameterValues(parameterValues)
+                .build();
+
+    }
+
+    @Bean(BEAN_PREFIX + "itemWriter0")
+    @StepScope
+    public ItemWriter<Statistics> itemWriter0() {
+        log.warn(BEAN_PREFIX + "itemWriter0");
+        return new ItemWriter<Statistics>() {
+            @Override
+            public void write(Chunk<? extends Statistics> chunk) throws Exception {
+                List<? extends Statistics> chunkItems = chunk.getItems();
+                InMemCacheStatistics.getInstance().addAll(chunkItems);
+            }
+        };
     }
 
     @Bean(BEAN_PREFIX + "step1")
@@ -96,32 +150,36 @@ public class RenewalStatisticsJobConfiguration {
                 .name(BEAN_PREFIX + "itemReader1")
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(CHUNK_SIZE)
-                .queryString("SELECT new com.example.jwttest.global.batch.dto.MatchStatisticsDto(m, st) " +
-                        "FROM Match m, Summoner sm, Statistics st " +
-                        "WHERE m.createAt > :startDateTime AND m.createAt <= :endDateTime" +
-                        "AND sm.summonerApiId IN m.summonerIds" +
-                        "AND st.summoner = sm "
+                .queryString("SELECT new com.example.jwttest.global.batch.dto.MatchStatisticsDto(m, s.statistics) " +
+                        "FROM Match m " +
+                        "JOIN MatchSummoner sm ON sm.match = m " +
+                        "JOIN Summoner s ON s = sm.summoner " +
+                        "WHERE m.createAt > :startDateTime AND m.createAt <= :endDateTime"
                 )
                 .parameterValues(parameterValues)
                 .build();
-
     }
 
 
+    // 쿼리의 `통계`로 캐싱된 `소환사`를 찾아서 `캐싱된 소환사`의 정보를 업데이트하고 저장한다.
+    // 이런 식으로 하는 이유는 읽는 시점에 `통계` 값들이 고정되어서 DB에 저장할 때, 최근의 ItemProcessor 결과 하나만 저장하게 됨
     @Bean(BEAN_PREFIX + "itemProcessor1")
     @StepScope
     public ItemProcessor<MatchStatisticsDto, Statistics> itemProcessor1() {
         log.warn(BEAN_PREFIX + "itemProcessor1");
         return matchStatisticsDto -> {
             Statistics statistics = matchStatisticsDto.statistics();
+            Statistics cachedStatistics = InMemCacheStatistics.getInstance().stream()
+                    .filter(s -> s.getId().equals(statistics.getId())).findAny()
+                    .orElseThrow(() -> new RuntimeException("캐싱된 소환사에 해당되는 소환사가 아닙니다."));
             boolean isWin = isWinMatch(matchStatisticsDto);
-            int curWinStreak = isWin ? statistics.getCurWinStreak() + 1 : 0;
-            int curLoseStreak = !isWin ? statistics.getCurLoseStreak() + 1 : 0;
-            int maxWinStreak = curWinStreak > statistics.getMaxWinStreak() ? curWinStreak : statistics.getMaxWinStreak();
-            int maxLoseStreak = curLoseStreak > statistics.getMaxLoseStreak() ? curLoseStreak : statistics.getMaxLoseStreak();
-            long winCount = isWin ? statistics.getWinCount() + 1 : statistics.getWinCount();
-            long loseCount = !isWin ? statistics.getLoseCount() + 1 : statistics.getLoseCount();
-            return new Statistics(
+            int curWinStreak = isWin ? cachedStatistics.getCurWinStreak() + 1 : 0;
+            int curLoseStreak = !isWin ? cachedStatistics.getCurLoseStreak() + 1 : 0;
+            int maxWinStreak = curWinStreak > cachedStatistics.getMaxWinStreak() ? curWinStreak : cachedStatistics.getMaxWinStreak();
+            int maxLoseStreak = curLoseStreak > cachedStatistics.getMaxLoseStreak() ? curLoseStreak : cachedStatistics.getMaxLoseStreak();
+            long winCount = isWin ? cachedStatistics.getWinCount() + 1 : cachedStatistics.getWinCount();
+            long loseCount = !isWin ? cachedStatistics.getLoseCount() + 1 : cachedStatistics.getLoseCount();
+            Statistics newStatistics = new Statistics(
                     statistics.getId(),
                     statistics.getSummoner(),
                     curWinStreak,
@@ -131,6 +189,10 @@ public class RenewalStatisticsJobConfiguration {
                     winCount,
                     loseCount
             );
+            InMemCacheStatistics.getInstance().remove(cachedStatistics);
+            InMemCacheStatistics.getInstance().add(newStatistics);
+            log.warn("newStatistics = {}", newStatistics);
+            return newStatistics;
         };
     }
 

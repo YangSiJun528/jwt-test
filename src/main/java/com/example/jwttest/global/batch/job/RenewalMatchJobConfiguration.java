@@ -213,6 +213,8 @@ public class RenewalMatchJobConfiguration {
                 .build();
     }
 
+    // TODO Step2 끝나고 나서 메모리 DB 초기화 하는 로직 추가
+
     @Bean(BEAN_PREFIX + "step3")
     @JobScope
     public Step step3(JobRepository jobRepository,

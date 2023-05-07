@@ -1,5 +1,9 @@
 package com.example.jwttest.global.batch;
 
+import com.example.jwttest.domain.statistics.domain.Statistics;
+import com.example.jwttest.domain.statistics.repository.StatisticsRepository;
+import com.example.jwttest.domain.summoner.domain.Summoner;
+import com.example.jwttest.domain.summoner.dto.SummonerDto;
 import com.example.jwttest.domain.summoner.repository.SummonerRepository;
 import com.example.jwttest.global.riot.RiotApiUtil;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +15,11 @@ import org.springframework.batch.core.configuration.JobLocator;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -21,6 +28,7 @@ public class MyBatchRunner implements CommandLineRunner {
     private final JobLocator jobLocator;
     private final JobLauncher jobLauncher;
     private final SummonerRepository summonerRepository;
+    private final StatisticsRepository statisticsRepository;
 
     public void runJob() throws Exception {
         Job testJob = jobLocator.getJob("simpleJob");
@@ -40,13 +48,13 @@ public class MyBatchRunner implements CommandLineRunner {
         /* batch 수행 */
         jobLauncher.run(job1, job1Parameters);
 
-//        Job job2 = jobLocator.getJob("renewStatisticsJob");
-//        JobParameters job2Parameters = new JobParametersBuilder()
-//                .addLocalDateTime("dateTime", LocalDateTime.now())
-//                .toJobParameters();
-//        log.warn("job2 실행");
-//        /* batch 수행 */
-//        jobLauncher.run(job2, job2Parameters);
+        Job job2 = jobLocator.getJob("renewStatisticsJob");
+        JobParameters job2Parameters = new JobParametersBuilder()
+                .addLocalDateTime("dateTime", LocalDateTime.now())
+                .toJobParameters();
+        log.warn("job2 실행");
+        /* batch 수행 */
+        jobLauncher.run(job2, job2Parameters);
     }
 
     @Override
@@ -55,8 +63,10 @@ public class MyBatchRunner implements CommandLineRunner {
         runJob();
     }
 
-    private void init() {
+    @Transactional
+    public void init() {
         summonerRepository.saveAll(RiotApiUtil.dummySummoner());
+        statisticsRepository.saveAll(RiotApiUtil.dummyStatistics());
     }
 }
 
