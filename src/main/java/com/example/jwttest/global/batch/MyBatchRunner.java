@@ -40,13 +40,13 @@ public class MyBatchRunner implements CommandLineRunner {
         /* batch 수행 */
         jobLauncher.run(job1, job1Parameters);
 
-        Job job2 = jobLocator.getJob("renewStatisticsJob");
-        JobParameters job2Parameters = new JobParametersBuilder()
-                .addLocalDateTime("dateTime", LocalDateTime.now())
-                .toJobParameters();
-        log.warn("job2 실행");
-        /* batch 수행 */
-        jobLauncher.run(job2, job2Parameters);
+//        Job job2 = jobLocator.getJob("renewStatisticsJob");
+//        JobParameters job2Parameters = new JobParametersBuilder()
+//                .addLocalDateTime("dateTime", LocalDateTime.now())
+//                .toJobParameters();
+//        log.warn("job2 실행");
+//        /* batch 수행 */
+//        jobLauncher.run(job2, job2Parameters);
     }
 
     @Override

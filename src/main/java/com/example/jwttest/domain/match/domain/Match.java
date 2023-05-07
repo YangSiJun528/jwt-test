@@ -1,6 +1,7 @@
 package com.example.jwttest.domain.match.domain;
 
 import com.example.jwttest.domain.match.converter.MapToJsonConverter;
+import com.example.jwttest.domain.summoner.domain.Summoner;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.Map;
 public class Match {
     @Id
     @Column(name = "match_id")
-    String id;
+    private String id;
 
     @ElementCollection
     @CollectionTable(name = "MatchSummonerIds", joinColumns =
@@ -30,10 +31,13 @@ public class Match {
     @Lob
     @Convert(converter = MapToJsonConverter.class)
     @Column(nullable = false, unique = true)
-    Map<String, Object> response;
+    private Map<String, Object> response;
 
     @Column(nullable = false)
     private LocalDateTime createAt;
+
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY)
+    private List<MatchSummoner> summoners;
 
     @PrePersist
     public void preUpdate() {

@@ -3,7 +3,7 @@ package com.example.jwttest.global.batch.job;
 import com.example.jwttest.domain.match.domain.Match;
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.global.batch.InMemCache;
-import com.example.jwttest.global.riot.RiotApiUtil;
+import com.example.jwttest.global.batch.dto.MatchSummonerDto;
 import com.example.jwttest.global.riot.service.MatchRiotApiService;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
@@ -22,23 +22,23 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.database.*;
+import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Slf4j
 @Configuration
@@ -62,12 +62,14 @@ public class RenewalMatchJobConfiguration {
 
     @Bean(JOB_NAME)
     public Job renewMatchJob(JobRepository jobRepository,
-                        @Qualifier(BEAN_PREFIX + "step1") Step step1,
-                        @Qualifier(BEAN_PREFIX + "step2") Step step2
+                             @Qualifier(BEAN_PREFIX + "step1") Step step1,
+                             @Qualifier(BEAN_PREFIX + "step2") Step step2,
+                             @Qualifier(BEAN_PREFIX + "step3") Step step3
     ) {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .start(step1)
                 .next(step2)
+                .next(step3)
                 .build();
     }
 
@@ -195,7 +197,7 @@ public class RenewalMatchJobConfiguration {
             List<String> summonerIds = participants.stream().map((participant) -> participant.get("summonerId").toString()).toList();
             log.warn(rs.toString());
             log.warn(summonerIds.toString());
-            return new Match(matchId, summonerIds ,rs, jobParameter.getDateTime());
+            return new Match(matchId, summonerIds, rs, jobParameter.getDateTime(), null);
         };
     }
 
@@ -208,6 +210,90 @@ public class RenewalMatchJobConfiguration {
         return new JpaItemWriterBuilder<Match>()
                 .entityManagerFactory(entityManagerFactory)
                 .usePersist(true)
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "step3")
+    @JobScope
+    public Step step3(JobRepository jobRepository,
+                      PlatformTransactionManager transactionManager,
+                      EntityManagerFactory entityManagerFactory,
+                      DataSource dataSource
+    ) {
+        log.warn(BEAN_PREFIX + "step3");
+        return new StepBuilder(BEAN_PREFIX + "step3", jobRepository)
+                .<MatchSummonerDto, MatchSummonerDto>chunk(CHUNK_SIZE, transactionManager)
+                .reader(itemReader3(dataSource))
+                .processor(itemProcessor3())
+                .writer(itemWriter3(dataSource))
+                .build();
+    }
+
+    // 오늘 배치 돌린 Match의
+    @Bean(BEAN_PREFIX + "itemReader3")
+    @StepScope
+    public JdbcPagingItemReader<MatchSummonerDto> itemReader3(DataSource dataSource) {
+        Map<String, Object> parameterValues = new HashMap<>();
+        parameterValues.put("startDateTime", jobParameter.getDateTime().minusDays(1L));
+        parameterValues.put("endDateTime", jobParameter.getDateTime());
+        return new JdbcPagingItemReaderBuilder<MatchSummonerDto>()
+                .name(BEAN_PREFIX + "itemReader3")
+                .pageSize(CHUNK_SIZE)
+                .fetchSize(CHUNK_SIZE)
+                .dataSource(dataSource)
+                .rowMapper(matchSummonerDtoRowMapper)
+                .queryProvider(createQueryProvider(dataSource))
+                .parameterValues(parameterValues)
+                .build();
+    }
+    // 그냥 이럴꺼면 JDBC 사용
+    // summoner id + apiId(이 값으로 가져옴) - match id + summoner ids(join 필요)
+    // 매치 중에 ids가 apiId랑 같은 것들
+    // MATCH_SUMMONER 테이블에 매치 id랑 summoner id 연결한 테이블을 추가해서 관계 형성
+
+    @Bean
+    public PagingQueryProvider createQueryProvider(DataSource dataSource) {
+        SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
+        queryProvider.setDataSource(dataSource); // Database에 맞는 PagingQueryProvider를 선택하기 위해
+        queryProvider.setSelectClause("m.MATCH_ID as MATCH_ID, s.SUMMONER_API_ID as SUMMONER_API_ID, s.SUMMONER_ID as SUMMONER_ID");
+        queryProvider.setFromClause("from MATCH as m, MATCH_SUMMONER_IDS msi,  SUMMONER as s");
+        queryProvider.setWhereClause(
+                "WHERE m.CREATE_AT BETWEEN :startDateTime AND :endDateTime " +
+                        "AND msi.MATCH_ID = m.MATCH_ID " +
+                        "AND s.SUMMONER_API_ID = msi.SUMMONER_IDS"
+        );
+        Map<String, Order> sortKeys = new HashMap<>(1);
+        sortKeys.put("MATCH_ID", Order.ASCENDING);
+
+        queryProvider.setSortKeys(sortKeys);
+        try {
+            return queryProvider.getObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final RowMapper<MatchSummonerDto> matchSummonerDtoRowMapper =
+            (rs, rowNum) -> new MatchSummonerDto(UUID.randomUUID(), rs.getString("MATCH_ID"), rs.getString("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
+
+    @Bean(BEAN_PREFIX + "itemProcessor3")
+    @StepScope
+    public ItemProcessor<MatchSummonerDto, MatchSummonerDto> itemProcessor3() {
+        log.warn(BEAN_PREFIX + "itemProcessor3");
+        return item -> {
+            log.warn("matchSummonerDto = {}",item);
+            return item;
+        };
+    }
+
+    @Bean(BEAN_PREFIX + "itemWriter3")
+    @StepScope
+    public ItemWriter<MatchSummonerDto> itemWriter3(DataSource dataSource) {
+        log.warn(BEAN_PREFIX + "itemWriter3");
+        return new JdbcBatchItemWriterBuilder<MatchSummonerDto>()
+                .dataSource(dataSource)
+                .sql("insert into MATCH_SUMMONER(MATCH_SUMMONER_ID, MATCH_ID, SUMMONER_ID) values (:id, :matchId, :summonerId)")
+                .beanMapped() // Match의 필드를 사용할 수 있게 해줌
                 .build();
     }
 }

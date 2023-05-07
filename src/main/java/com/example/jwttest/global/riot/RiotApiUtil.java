@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Component
 public class RiotApiUtil {
-    public static final String API_KEY = "RGAPI-e9af2ec0-a60c-4db7-b1e3-05cf0282cf95";
+    public static final String API_KEY = "RGAPI-b4f8a5d5-4e4c-4178-a634-bdd2fbdec963";
     public static final RestTemplate REST = new RestTemplate();
 
     // https://ddragon.leagueoflegends.com/api/versions.json << 여기에서 확인할 수 있음
