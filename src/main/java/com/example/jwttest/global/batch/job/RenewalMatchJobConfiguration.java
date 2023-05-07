@@ -3,7 +3,7 @@ package com.example.jwttest.global.batch.job;
 import com.example.jwttest.domain.match.domain.Match;
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.global.batch.InMemCache;
-import com.example.jwttest.global.batch.dto.MatchSummonerDto;
+import com.example.jwttest.domain.match.dto.MatchSummonerDto;
 import com.example.jwttest.global.riot.service.MatchRiotApiService;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;

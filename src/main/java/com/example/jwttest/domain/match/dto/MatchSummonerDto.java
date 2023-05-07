@@ -1,4 +1,4 @@
-package com.example.jwttest.global.batch.dto;
+package com.example.jwttest.domain.match.dto;
 
 import com.example.jwttest.domain.match.domain.Match;
 import com.example.jwttest.domain.summoner.domain.Summoner;
