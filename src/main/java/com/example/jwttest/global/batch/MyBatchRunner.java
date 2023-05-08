@@ -1,5 +1,6 @@
 package com.example.jwttest.global.batch;
 
+import com.example.jwttest.domain.league.repository.LeagueRepository;
 import com.example.jwttest.domain.statistics.domain.Statistics;
 import com.example.jwttest.domain.statistics.repository.StatisticsRepository;
 import com.example.jwttest.domain.summoner.domain.Summoner;
@@ -48,13 +49,21 @@ public class MyBatchRunner implements CommandLineRunner {
         /* batch 수행 */
         jobLauncher.run(job1, job1Parameters);
 
-        Job job2 = jobLocator.getJob("renewStatisticsJob");
+        Job job2 = jobLocator.getJob("renewLeagueJob");
         JobParameters job2Parameters = new JobParametersBuilder()
                 .addLocalDateTime("dateTime", LocalDateTime.now())
                 .toJobParameters();
         log.warn("job2 실행");
         /* batch 수행 */
         jobLauncher.run(job2, job2Parameters);
+
+        Job job3 = jobLocator.getJob("renewStatisticsJob");
+        JobParameters job3Parameters = new JobParametersBuilder()
+                .addLocalDateTime("dateTime", LocalDateTime.now())
+                .toJobParameters();
+        log.warn("job3 실행");
+        /* batch 수행 */
+        jobLauncher.run(job3, job3Parameters);
     }
 
     @Override

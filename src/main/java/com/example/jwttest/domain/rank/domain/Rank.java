@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -20,7 +22,12 @@ public class Rank {
     @ManyToOne(fetch = FetchType.LAZY)
     Summoner summoner;
 
-    Long rankNumber;
+    Long rankingNumber;
 
     RankType rankType;
+
+    String rankValue;
+
+    @Column(nullable = false)
+    private LocalDateTime createAt;
 }

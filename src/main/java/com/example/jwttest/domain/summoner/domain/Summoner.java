@@ -1,10 +1,12 @@
 package com.example.jwttest.domain.summoner.domain;
 
+import com.example.jwttest.domain.league.domain.League;
 import com.example.jwttest.domain.statistics.domain.Statistics;
 import com.example.jwttest.domain.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -30,6 +32,9 @@ public class Summoner {
 
     @OneToOne(mappedBy = "summoner")
     private Statistics statistics;
+
+    @OneToMany(mappedBy = "summoner")
+    private List<League> leagues;
 
     @ManyToOne
     private User user;
