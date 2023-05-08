@@ -97,10 +97,18 @@ public class RenewalRankJobConfiguration {
 
     @Bean(JOB_NAME)
     public Job renewStatisticsJob(JobRepository jobRepository,
-                                  @Qualifier(BEAN_PREFIX + "step1") Step step1
+                                  @Qualifier(BEAN_PREFIX + "tier_" + "step") Step rankStep,
+                                  @Qualifier(BEAN_PREFIX + "curLoseStreak_" + "step") Step curLoseStreakStep,
+                                  @Qualifier(BEAN_PREFIX + "curWinStreak_" + "step") Step curWinStreakStep,
+                                  @Qualifier(BEAN_PREFIX + "matchCount_" + "step") Step matchCountStep,
+                                  @Qualifier(BEAN_PREFIX + "summonerLevel_" + "step") Step summonerLevelStep
     ) {
         return new JobBuilder(JOB_NAME, jobRepository)
-                .start(step1)
+                .start(rankStep)
+                .next(curLoseStreakStep)
+                .next(curWinStreakStep)
+                .next(matchCountStep)
+                .next(summonerLevelStep)
                 .build();
     }
 
@@ -110,24 +118,24 @@ public class RenewalRankJobConfiguration {
     //  다른 방식으로는 통계 전부 읽어서 하는 방법이 있는데,
     //  DB 부하(조회 많음)나 효율 면에서 별로임 - 스텝 여러개로 하는 방식이면 SQL 인덱스만 잘 타면 효율좋게 가능
 
-    @Bean(BEAN_PREFIX + "step1")
+    @Bean(BEAN_PREFIX + "tier_" + "step")
     @JobScope
     public Step step1(JobRepository jobRepository,
                       PlatformTransactionManager transactionManager,
                       DataSource dataSource
     ) {
-        log.warn(BEAN_PREFIX + "step1");
-        return new StepBuilder(BEAN_PREFIX + "step1", jobRepository)
+        log.warn(BEAN_PREFIX + "tier_" + "step");
+        return new StepBuilder(BEAN_PREFIX + "tier_" + "step", jobRepository)
                 .<Map<String, Object>, RankForJdbcDto>chunk(CHUNK_SIZE, transactionManager)
-                .reader(itemReader1(dataSource))
-                .processor(itemProcessor1())
-                .writer(itemWriter1(dataSource))
+                .reader(tierItemReader(dataSource))
+                .processor(tierItemProcessor())
+                .writer(commonItemWriter(dataSource))
                 .build();
     }
 
-    @Bean(BEAN_PREFIX + "itemReader1")
+    @Bean(BEAN_PREFIX + "tier_" + "itemReader")
     @StepScope
-    public JdbcPagingItemReader<Map<String, Object>> itemReader1(DataSource dataSource) {
+    public JdbcPagingItemReader<Map<String, Object>> tierItemReader(DataSource dataSource) {
         SqlPagingQueryProviderFactoryBean queryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
         queryProviderFactoryBean.setDataSource(dataSource);
         String rankCase = "CASE l.RANK " +
@@ -148,10 +156,11 @@ public class RenewalRankJobConfiguration {
                 "WHEN 'IRON' THEN 8 " +
                 "ELSE -1 END";
         queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
-                "ROW_NUMBER() OVER (ORDER BY "+ rankCase +" ASC, "+ tierCase +" ASC, LEAGUE_POINTS DESC) as RANKING_NUMBER, " +
+                "ROW_NUMBER() OVER (PARTITION BY QUEUE_TYPE ORDER BY "+ rankCase +" ASC, "+ tierCase +" ASC, LEAGUE_POINTS DESC) as RANKING_NUMBER, " +
                 "l.RANK as RANK, " +
                 "l.TIER as TIER_TYPE, " +
-                "l.LEAGUE_POINTS as LEAGUE_POINTS "
+                "l.LEAGUE_POINTS as LEAGUE_POINTS, " +
+                "l.QUEUE_TYPE as QUEUE_TYPE "
         );
         queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st, LEAGUE as l ");
         queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID AND l.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
@@ -169,9 +178,9 @@ public class RenewalRankJobConfiguration {
             throw new RuntimeException(e);
         }
 
-        log.warn(BEAN_PREFIX + "itemReader1");
+        log.warn(BEAN_PREFIX + "tier_" + "itemReader");
         return new JdbcPagingItemReaderBuilder<Map<String, Object>>()
-                .name(BEAN_PREFIX + "itemReader1")
+                .name(BEAN_PREFIX + "tier_" + "itemReader")
                 .pageSize(CHUNK_SIZE)
                 .fetchSize(CHUNK_SIZE)
                 .dataSource(dataSource)
@@ -181,32 +190,323 @@ public class RenewalRankJobConfiguration {
                 .build();
     }
 
-    @Bean(BEAN_PREFIX + "itemProcessor1")
+    @Bean(BEAN_PREFIX + "tier_" + "itemProcessor")
     @StepScope
-    public ItemProcessor<Map<String, Object>, RankForJdbcDto> itemProcessor1() {
-        log.warn(BEAN_PREFIX + "itemProcessor1");
+    public ItemProcessor<Map<String, Object>, RankForJdbcDto> tierItemProcessor() {
+        log.warn(BEAN_PREFIX + "tier_" + "itemProcessor");
         return rankInfo -> {
             UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            String queueType = (String) rankInfo.get("QUEUE_TYPE"); // 솔랭, 자랭
             String tierType = (String) rankInfo.get("TIER_TYPE");
             String rankValue = (String) rankInfo.get("RANK");
             Integer leaguePoints = (Integer) rankInfo.get("LEAGUE_POINTS");
+            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+
+            String strRankType;
+            if(queueType.equals("RANKED_SOLO_5x5")) strRankType = RankType.TIER_RANKED_SOLO_5x5.name();
+            else if(queueType.equals("RANKED_FLEX_SR")) strRankType = RankType.TIER_RANKED_FLEX_SR.name();
+            else strRankType = "error";
+
+            return new RankForJdbcDto(
+                    UUID.randomUUID(),
+                    summonerId,
+                    rankingNumber,
+                    strRankType, // String으로 변환해서 저장
+                    queueType + "_" +tierType + "_" + rankValue + "_" + leaguePoints,
+                    jobParameter.getDateTime()
+            );
+        };
+    }
+
+    @Bean(BEAN_PREFIX + "curLoseStreak_" + "step")
+    @JobScope
+    public Step curLoseStreakStep(JobRepository jobRepository,
+                      PlatformTransactionManager transactionManager,
+                      DataSource dataSource
+    ) {
+        log.warn(BEAN_PREFIX + "curLoseStreak_" + "step");
+        return new StepBuilder(BEAN_PREFIX + "curLoseStreak_" + "step", jobRepository)
+                .<Map<String, Object>, RankForJdbcDto>chunk(CHUNK_SIZE, transactionManager)
+                .reader(curLoseStreakItemReader(dataSource))
+                .processor(curLoseStreakItemProcessor())
+                .writer(commonItemWriter(dataSource))
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "curLoseStreak_" + "itemReader")
+    @StepScope
+    public JdbcPagingItemReader<Map<String, Object>> curLoseStreakItemReader(DataSource dataSource) {
+        SqlPagingQueryProviderFactoryBean queryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+        queryProviderFactoryBean.setDataSource(dataSource);
+        queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
+                "ROW_NUMBER() OVER (ORDER BY CUR_LOSE_STREAK DESC) as RANKING_NUMBER, " +
+                "st.CUR_LOSE_STREAK as CUR_LOSE_STREAK "
+        );
+        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st ");
+        queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
+        Map<String, Order> sortKeys = new HashMap<>(1);
+        sortKeys.put("SUMMONER_ID", Order.ASCENDING);
+
+        queryProviderFactoryBean.setSortKeys(sortKeys);
+
+        PagingQueryProvider queryProvider;
+
+        try {
+            queryProvider = queryProviderFactoryBean.getObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        log.warn(BEAN_PREFIX + "curLoseStreak_" + "itemReader");
+        return new JdbcPagingItemReaderBuilder<Map<String, Object>>()
+                .name(BEAN_PREFIX + "curLoseStreak_" + "itemReader")
+                .pageSize(CHUNK_SIZE)
+                .fetchSize(CHUNK_SIZE)
+                .dataSource(dataSource)
+                .rowMapper(columnMapRowMapper)
+                .queryProvider(queryProvider)
+                .maxItemCount(100)
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "curLoseStreak_" + "itemProcessor")
+    @StepScope
+    public ItemProcessor<Map<String, Object>, RankForJdbcDto> curLoseStreakItemProcessor() {
+        log.warn(BEAN_PREFIX + "curLoseStreak_" + "itemProcessor");
+        return rankInfo -> {
+            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            Integer curLoseStreak = (Integer) rankInfo.get("CUR_LOSE_STREAK");
             Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
 
             return new RankForJdbcDto(
                     UUID.randomUUID(),
                     summonerId,
                     rankingNumber,
-                    RankType.TIER.name(), // String으로 변환해서 저장
-                    tierType + "_" + rankValue + "_" + leaguePoints,
+                    RankType.CUR_LOSE_STREAK.name(), // String으로 변환해서 저장
+                    curLoseStreak.toString(),
                     jobParameter.getDateTime()
             );
         };
     }
 
-    @Bean(BEAN_PREFIX + "itemWriter1")
+    @Bean(BEAN_PREFIX + "curWinStreak_" + "step")
+    @JobScope
+    public Step curWinStreakStep(JobRepository jobRepository,
+                                  PlatformTransactionManager transactionManager,
+                                  DataSource dataSource
+    ) {
+        log.warn(BEAN_PREFIX + "curWinStreak_" + "step");
+        return new StepBuilder(BEAN_PREFIX + "curWinStreak_" + "step", jobRepository)
+                .<Map<String, Object>, RankForJdbcDto>chunk(CHUNK_SIZE, transactionManager)
+                .reader(curWinStreakItemReader(dataSource))
+                .processor(curWinStreakItemProcessor())
+                .writer(commonItemWriter(dataSource))
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "curWinStreak_" + "itemReader")
     @StepScope
-    public ItemWriter<RankForJdbcDto> itemWriter1(DataSource dataSource) {
-        log.warn(BEAN_PREFIX + "itemWriter1");
+    public JdbcPagingItemReader<Map<String, Object>> curWinStreakItemReader(DataSource dataSource) {
+        SqlPagingQueryProviderFactoryBean queryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+        queryProviderFactoryBean.setDataSource(dataSource);
+        queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
+                "ROW_NUMBER() OVER (ORDER BY CUR_WIN_STREAK DESC) as RANKING_NUMBER, " +
+                "st.CUR_WIN_STREAK as CUR_WIN_STREAK "
+        );
+        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st ");
+        queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
+        Map<String, Order> sortKeys = new HashMap<>(1);
+        sortKeys.put("SUMMONER_ID", Order.ASCENDING);
+
+        queryProviderFactoryBean.setSortKeys(sortKeys);
+
+        PagingQueryProvider queryProvider;
+
+        try {
+            queryProvider = queryProviderFactoryBean.getObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        log.warn(BEAN_PREFIX + "curWinStreak_" + "itemReader");
+        return new JdbcPagingItemReaderBuilder<Map<String, Object>>()
+                .name(BEAN_PREFIX + "curWinStreak_" + "itemReader")
+                .pageSize(CHUNK_SIZE)
+                .fetchSize(CHUNK_SIZE)
+                .dataSource(dataSource)
+                .rowMapper(columnMapRowMapper)
+                .queryProvider(queryProvider)
+                .maxItemCount(100)
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "curWinStreak_" + "itemProcessor")
+    @StepScope
+    public ItemProcessor<Map<String, Object>, RankForJdbcDto> curWinStreakItemProcessor() {
+        log.warn(BEAN_PREFIX + "curWinStreak_" + "itemProcessor");
+        return rankInfo -> {
+            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            Integer curWinStreak = (Integer) rankInfo.get("CUR_WIN_STREAK");
+            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+
+            return new RankForJdbcDto(
+                    UUID.randomUUID(),
+                    summonerId,
+                    rankingNumber,
+                    RankType.CUR_WIN_STREAK.name(), // String으로 변환해서 저장
+                    curWinStreak.toString(),
+                    jobParameter.getDateTime()
+            );
+        };
+    }
+
+    @Bean(BEAN_PREFIX + "matchCount_" + "step")
+    @JobScope
+    public Step matchCountStep(JobRepository jobRepository,
+                                 PlatformTransactionManager transactionManager,
+                                 DataSource dataSource
+    ) {
+        log.warn(BEAN_PREFIX + "matchCount_" + "step");
+        return new StepBuilder(BEAN_PREFIX + "matchCount_" + "step", jobRepository)
+                .<Map<String, Object>, RankForJdbcDto>chunk(CHUNK_SIZE, transactionManager)
+                .reader(matchCountItemReader(dataSource))
+                .processor(matchCountItemProcessor())
+                .writer(commonItemWriter(dataSource))
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "matchCount_" + "itemReader")
+    @StepScope
+    public JdbcPagingItemReader<Map<String, Object>> matchCountItemReader(DataSource dataSource) {
+        SqlPagingQueryProviderFactoryBean queryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+        queryProviderFactoryBean.setDataSource(dataSource);
+        queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
+                "ROW_NUMBER() OVER (ORDER BY st.WIN_COUNT + st.LOSE_COUNT DESC) as RANKING_NUMBER, " +
+                "st.WIN_COUNT + st.LOSE_COUNT as MATCH_COUNT "
+        );
+        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st ");
+        queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
+        Map<String, Order> sortKeys = new HashMap<>(1);
+        sortKeys.put("SUMMONER_ID", Order.ASCENDING);
+
+        queryProviderFactoryBean.setSortKeys(sortKeys);
+
+        PagingQueryProvider queryProvider;
+
+        try {
+            queryProvider = queryProviderFactoryBean.getObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        log.warn(BEAN_PREFIX + "matchCount_" + "itemReader");
+        return new JdbcPagingItemReaderBuilder<Map<String, Object>>()
+                .name(BEAN_PREFIX + "matchCount_" + "itemReader")
+                .pageSize(CHUNK_SIZE)
+                .fetchSize(CHUNK_SIZE)
+                .dataSource(dataSource)
+                .rowMapper(columnMapRowMapper)
+                .queryProvider(queryProvider)
+                .maxItemCount(100)
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "matchCount_" + "itemProcessor")
+    @StepScope
+    public ItemProcessor<Map<String, Object>, RankForJdbcDto> matchCountItemProcessor() {
+        log.warn(BEAN_PREFIX + "matchCount_" + "itemProcessor");
+        return rankInfo -> {
+            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            Long matchCount = (Long) rankInfo.get("MATCH_COUNT");
+            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+
+            return new RankForJdbcDto(
+                    UUID.randomUUID(),
+                    summonerId,
+                    rankingNumber,
+                    RankType.MATCH_COUNT.name(), // String으로 변환해서 저장
+                    matchCount.toString(),
+                    jobParameter.getDateTime()
+            );
+        };
+    }
+
+    @Bean(BEAN_PREFIX + "summonerLevel_" + "step")
+    @JobScope
+    public Step summonerLevelStep(JobRepository jobRepository,
+                               PlatformTransactionManager transactionManager,
+                               DataSource dataSource
+    ) {
+        log.warn(BEAN_PREFIX + "summonerLevel_" + "step");
+        return new StepBuilder(BEAN_PREFIX + "summonerLevel_" + "step", jobRepository)
+                .<Map<String, Object>, RankForJdbcDto>chunk(CHUNK_SIZE, transactionManager)
+                .reader(summonerLevelItemReader(dataSource))
+                .processor(summonerLevelItemProcessor())
+                .writer(commonItemWriter(dataSource))
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "summonerLevel_" + "itemReader")
+    @StepScope
+    public JdbcPagingItemReader<Map<String, Object>> summonerLevelItemReader(DataSource dataSource) {
+        SqlPagingQueryProviderFactoryBean queryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+        queryProviderFactoryBean.setDataSource(dataSource);
+        queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
+                "ROW_NUMBER() OVER (ORDER BY s.SUMMONER_LEVEL DESC) as RANKING_NUMBER, " +
+                "s.SUMMONER_LEVEL as SUMMONER_LEVEL "
+        );
+        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st ");
+        queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
+        Map<String, Order> sortKeys = new HashMap<>(1);
+        sortKeys.put("SUMMONER_ID", Order.ASCENDING);
+
+        queryProviderFactoryBean.setSortKeys(sortKeys);
+
+        PagingQueryProvider queryProvider;
+
+        try {
+            queryProvider = queryProviderFactoryBean.getObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        log.warn(BEAN_PREFIX + "summonerLevel_" + "itemReader");
+        return new JdbcPagingItemReaderBuilder<Map<String, Object>>()
+                .name(BEAN_PREFIX + "summonerLevel_" + "itemReader")
+                .pageSize(CHUNK_SIZE)
+                .fetchSize(CHUNK_SIZE)
+                .dataSource(dataSource)
+                .rowMapper(columnMapRowMapper)
+                .queryProvider(queryProvider)
+                .maxItemCount(100)
+                .build();
+    }
+
+    @Bean(BEAN_PREFIX + "summonerLevel_" + "itemProcessor")
+    @StepScope
+    public ItemProcessor<Map<String, Object>, RankForJdbcDto> summonerLevelItemProcessor() {
+        log.warn(BEAN_PREFIX + "summonerLevel_" + "itemProcessor");
+        return rankInfo -> {
+            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            Integer summonerLevel = (Integer) rankInfo.get("SUMMONER_LEVEL");
+            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+
+            return new RankForJdbcDto(
+                    UUID.randomUUID(),
+                    summonerId,
+                    rankingNumber,
+                    RankType.SUMMONER_LEVEL.name(), // String으로 변환해서 저장
+                    summonerLevel.toString(),
+                    jobParameter.getDateTime()
+            );
+        };
+    }
+
+
+    @Bean(BEAN_PREFIX + "commonItemWriter")
+    @StepScope
+    public ItemWriter<RankForJdbcDto> commonItemWriter(DataSource dataSource) {
+        log.warn(BEAN_PREFIX + "commonItemWriter");
         return new JdbcBatchItemWriterBuilder<RankForJdbcDto>()
                 .dataSource(dataSource)
                 .sql("insert into RANK(RANK_ID, CREATE_AT, RANK_TYPE, RANK_VALUE, RANKING_NUMBER, SUMMONER_SUMMONER_ID) values (:id, :createAt, :rankType, :rankValue, :rankingNumber, :summonerId)")
@@ -215,3 +515,5 @@ public class RenewalRankJobConfiguration {
     }
 }
 
+//TODO rank에 솔랭, 자랭 여부 추가
+// 나머지는 LEAGUE 조인 안해야 함 - LEAGUE에 솔랭 자랭 있어서, 한 소롼사가 여러 컬럼 가질 수 있음

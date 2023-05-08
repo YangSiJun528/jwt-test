@@ -37,6 +37,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -194,10 +195,14 @@ public class RenewalMatchJobConfiguration {
             Map<String, Object> rs = matchRiotApiService.getMatchByMatchId(matchId);
             Map<String, Object> info = (Map<String, Object>) rs.get("info");
             List<Map<String, Object>> participants = (List<Map<String, Object>>) info.get("participants");
+            Long startTimestamp = (Long) info.get("gameStartTimestamp");
+            LocalDateTime startDateTime =
+                    LocalDateTime.ofInstant(Instant.ofEpochMilli(startTimestamp),
+                            TimeZone.getDefault().toZoneId());
             List<String> summonerIds = participants.stream().map((participant) -> participant.get("summonerId").toString()).toList();
             log.warn(rs.toString());
             log.warn(summonerIds.toString());
-            return new Match(matchId, summonerIds, rs, jobParameter.getDateTime(), null);
+            return new Match(matchId, summonerIds, rs, startDateTime, null);
         };
     }
 
@@ -259,7 +264,7 @@ public class RenewalMatchJobConfiguration {
         queryProvider.setSelectClause("m.MATCH_ID as MATCH_ID, s.SUMMONER_API_ID as SUMMONER_API_ID, s.SUMMONER_ID as SUMMONER_ID");
         queryProvider.setFromClause("from MATCH as m, MATCH_SUMMONER_IDS msi,  SUMMONER as s");
         queryProvider.setWhereClause(
-                "WHERE m.CREATE_AT BETWEEN :startDateTime AND :endDateTime " +
+                "WHERE m.STARTED_AT BETWEEN :startDateTime AND :endDateTime " +
                         "AND msi.MATCH_ID = m.MATCH_ID " +
                         "AND s.SUMMONER_API_ID = msi.SUMMONER_IDS"
         );

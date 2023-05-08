@@ -86,6 +86,7 @@ public class RenewalStatisticsJobConfiguration {
                 .build();
     }
 
+    // 캐싱할 소환사 정보 가져오기
     @Bean(BEAN_PREFIX + "itemReader0")
     @StepScope
     public JpaPagingItemReader<Statistics> itemReader0(EntityManagerFactory entityManagerFactory) {
@@ -102,7 +103,7 @@ public class RenewalStatisticsJobConfiguration {
                         "FROM Match m " +
                         "JOIN MatchSummoner sm ON sm.match = m " +
                         "JOIN Summoner s ON s = sm.summoner " +
-                        "WHERE m.createAt > :startDateTime AND m.createAt <= :endDateTime"
+                        "WHERE m.startedAt > :startDateTime AND m.startedAt <= :endDateTime "
                 )
                 .parameterValues(parameterValues)
                 .build();
@@ -154,7 +155,8 @@ public class RenewalStatisticsJobConfiguration {
                         "FROM Match m " +
                         "JOIN MatchSummoner sm ON sm.match = m " +
                         "JOIN Summoner s ON s = sm.summoner " +
-                        "WHERE m.createAt > :startDateTime AND m.createAt <= :endDateTime"
+                        "WHERE m.startedAt > :startDateTime AND m.startedAt <= :endDateTime " +
+                        "ORDER BY m.startedAt ASC "
                 )
                 .parameterValues(parameterValues)
                 .build();
@@ -168,6 +170,7 @@ public class RenewalStatisticsJobConfiguration {
     public ItemProcessor<MatchStatisticsDto, Statistics> itemProcessor1() {
         log.warn(BEAN_PREFIX + "itemProcessor1");
         return matchStatisticsDto -> {
+            log.warn("Match Started = {}", matchStatisticsDto.match().getStartedAt().toString());
             Statistics statistics = matchStatisticsDto.statistics();
             Statistics cachedStatistics = InMemCacheStatistics.getInstance().stream()
                     .filter(s -> s.getId().equals(statistics.getId())).findAny()
@@ -182,10 +185,10 @@ public class RenewalStatisticsJobConfiguration {
             Statistics newStatistics = new Statistics(
                     statistics.getId(),
                     statistics.getSummoner(),
-                    curWinStreak,
-                    curLoseStreak,
                     maxWinStreak,
                     maxLoseStreak,
+                    curWinStreak,
+                    curLoseStreak,
                     winCount,
                     loseCount
             );
