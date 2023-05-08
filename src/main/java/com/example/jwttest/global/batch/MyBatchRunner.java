@@ -64,6 +64,14 @@ public class MyBatchRunner implements CommandLineRunner {
         log.warn("job3 실행");
         /* batch 수행 */
         jobLauncher.run(job3, job3Parameters);
+
+        Job job4 = jobLocator.getJob("renewRankJob");
+        JobParameters job4Parameters = new JobParametersBuilder()
+                .addLocalDateTime("dateTime", LocalDateTime.now())
+                .toJobParameters();
+        log.warn("job4 실행");
+        /* batch 수행 */
+        jobLauncher.run(job4, job4Parameters);
     }
 
     @Override

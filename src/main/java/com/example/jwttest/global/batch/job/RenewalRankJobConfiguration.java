@@ -1,10 +1,13 @@
 package com.example.jwttest.global.batch.job;
 
+import com.example.jwttest.domain.match.dto.MatchSummonerDto;
 import com.example.jwttest.domain.rank.domain.Rank;
+import com.example.jwttest.domain.rank.enums.RankType;
 import com.example.jwttest.domain.statistics.domain.Statistics;
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.global.batch.InMemCacheStatistics;
 import com.example.jwttest.global.batch.dto.MatchStatisticsDto;
+import com.example.jwttest.global.batch.dto.RankForJdbcDto;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,18 +27,27 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.database.Order;
+import org.springframework.batch.item.database.PagingQueryProvider;
+import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
+import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.sql.DataSource;
+import java.sql.ResultSetMetaData;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Configuration
@@ -63,6 +75,26 @@ public class RenewalRankJobConfiguration {
         return new JobParameter(dateTime);
     }
 
+    private final RowMapper<Map<String, Object>> columnMapRowMapper =
+            (rs, rowNum) -> {
+                // Get the ResultSetMetaData
+                ResultSetMetaData metaData = rs.getMetaData();
+                int columnCount = metaData.getColumnCount();
+
+                // Create a new Map to hold the column values
+                Map<String, Object> map = new HashMap<>(columnCount);
+
+                // Loop through the columns and add the column values to the map
+                for (int i = 1; i <= columnCount; i++) {
+                    String columnName = metaData.getColumnLabel(i);
+                    Object columnValue = rs.getObject(i);
+                    map.put(columnName, columnValue);
+                }
+
+                // Return the map
+                return map;
+            };
+
     @Bean(JOB_NAME)
     public Job renewStatisticsJob(JobRepository jobRepository,
                                   @Qualifier(BEAN_PREFIX + "step1") Step step1
@@ -82,51 +114,103 @@ public class RenewalRankJobConfiguration {
     @JobScope
     public Step step1(JobRepository jobRepository,
                       PlatformTransactionManager transactionManager,
-                      EntityManagerFactory entityManagerFactory
+                      DataSource dataSource
     ) {
         log.warn(BEAN_PREFIX + "step1");
         return new StepBuilder(BEAN_PREFIX + "step1", jobRepository)
-                .<List<Summoner>, List<Rank>>chunk(CHUNK_SIZE, transactionManager)
-                .reader(itemReader1(entityManagerFactory))
+                .<Map<String, Object>, RankForJdbcDto>chunk(CHUNK_SIZE, transactionManager)
+                .reader(itemReader1(dataSource))
                 .processor(itemProcessor1())
-                .writer(itemWriter1(entityManagerFactory))
+                .writer(itemWriter1(dataSource))
                 .build();
     }
 
     @Bean(BEAN_PREFIX + "itemReader1")
     @StepScope
-    public JpaPagingItemReader<List<Summoner>> itemReader1(EntityManagerFactory entityManagerFactory) {
-        Map<String, Object> parameterValues = new HashMap<>();
-        parameterValues.put("startDateTime", jobParameter.getDateTime().minusDays(1L));
-        parameterValues.put("endDateTime", jobParameter.getDateTime());
+    public JdbcPagingItemReader<Map<String, Object>> itemReader1(DataSource dataSource) {
+        SqlPagingQueryProviderFactoryBean queryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
+        queryProviderFactoryBean.setDataSource(dataSource);
+        String rankCase = "CASE l.RANK " +
+                "WHEN 'I' THEN 0 " +
+                "WHEN 'II' THEN 1 " +
+                "WHEN 'III' THEN 2 " +
+                "WHEN 'VI' THEN 3 " +
+                "END ";
+        String tierCase = "CASE l.TIER " +
+                "WHEN 'CHALLENGER' THEN 0 " +
+                "WHEN 'GRANDMASTER' THEN 1 " +
+                "WHEN 'MASTER' THEN 2 " +
+                "WHEN 'DIAMOND' THEN 3 " +
+                "WHEN 'PLATINUM' THEN 4 " +
+                "WHEN 'GOLD' THEN 5 " +
+                "WHEN 'SILVER' THEN 6 " +
+                "WHEN 'BRONZE' THEN 7 " +
+                "WHEN 'IRON' THEN 8 " +
+                "ELSE -1 END";
+        queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
+                "ROW_NUMBER() OVER (ORDER BY "+ rankCase +" ASC, "+ tierCase +" ASC, LEAGUE_POINTS DESC) as RANKING_NUMBER, " +
+                "l.RANK as RANK, " +
+                "l.TIER as TIER_TYPE, " +
+                "l.LEAGUE_POINTS as LEAGUE_POINTS "
+        );
+        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st, LEAGUE as l ");
+        queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID AND l.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
+        Map<String, Order> sortKeys = new HashMap<>(1);
+        sortKeys.put("SUMMONER_ID", Order.ASCENDING);
+        // h2는 select 절에서 case 사용해도 order By절 에서 사용 불가
+
+        queryProviderFactoryBean.setSortKeys(sortKeys);
+
+        PagingQueryProvider queryProvider;
+
+        try {
+            queryProvider = queryProviderFactoryBean.getObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         log.warn(BEAN_PREFIX + "itemReader1");
-        return new JpaPagingItemReaderBuilder<List<Summoner>>()
+        return new JdbcPagingItemReaderBuilder<Map<String, Object>>()
                 .name(BEAN_PREFIX + "itemReader1")
-                .entityManagerFactory(entityManagerFactory)
                 .pageSize(CHUNK_SIZE)
-                .queryString("")
-                .parameterValues(parameterValues)
+                .fetchSize(CHUNK_SIZE)
+                .dataSource(dataSource)
+                .rowMapper(columnMapRowMapper)
+                .queryProvider(queryProvider)
+                .maxItemCount(100)
                 .build();
     }
 
     @Bean(BEAN_PREFIX + "itemProcessor1")
     @StepScope
-    public ItemProcessor<List<Summoner>, List<Rank>> itemProcessor1() {
+    public ItemProcessor<Map<String, Object>, RankForJdbcDto> itemProcessor1() {
         log.warn(BEAN_PREFIX + "itemProcessor1");
-        return summoners -> {
-            // TODO 소환사 순서대로 랭킹 값 생성 반복문
-            return null; // 랭킹 리스트
+        return rankInfo -> {
+            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            String tierType = (String) rankInfo.get("TIER_TYPE");
+            String rankValue = (String) rankInfo.get("RANK");
+            Integer leaguePoints = (Integer) rankInfo.get("LEAGUE_POINTS");
+            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+
+            return new RankForJdbcDto(
+                    UUID.randomUUID(),
+                    summonerId,
+                    rankingNumber,
+                    RankType.TIER.name(), // String으로 변환해서 저장
+                    tierType + "_" + rankValue + "_" + leaguePoints,
+                    jobParameter.getDateTime()
+            );
         };
     }
 
     @Bean(BEAN_PREFIX + "itemWriter1")
     @StepScope
-    public ItemWriter<List<Rank>> itemWriter1(EntityManagerFactory entityManagerFactory) {
+    public ItemWriter<RankForJdbcDto> itemWriter1(DataSource dataSource) {
         log.warn(BEAN_PREFIX + "itemWriter1");
-        return new JpaItemWriterBuilder<List<Rank>>()
-                .entityManagerFactory(entityManagerFactory)
-                .usePersist(false)
+        return new JdbcBatchItemWriterBuilder<RankForJdbcDto>()
+                .dataSource(dataSource)
+                .sql("insert into RANK(RANK_ID, CREATE_AT, RANK_TYPE, RANK_VALUE, RANKING_NUMBER, SUMMONER_SUMMONER_ID) values (:id, :createAt, :rankType, :rankValue, :rankingNumber, :summonerId)")
+                .beanMapped()
                 .build();
     }
 }

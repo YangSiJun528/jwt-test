@@ -21,9 +21,9 @@ public class League {
     Summoner summoner;
 
     private String queueType;
-    private String tier;
-    private String rank;
-    private int leaguePoints;
+    private String tier; // IRON - GOLD
+    private String rank; // I - III - VI
+    private int leaguePoints; // 0 ~ 100
     private int wins;
     private int losses;
 

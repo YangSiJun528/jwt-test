@@ -45,9 +45,8 @@ public class TestJobConfiguration {
         // 내가 직접 allArg 생성자를 만든다고 해도, 그거까지 null check를 해주지 않는다는 소리임
     }
 
-
     @Bean
-    public Job simpleJob(JobRepository jobRepository,  @Qualifier(JOB_NAME + "_step1") Step testStep1) {
+    public Job simpleJob(JobRepository jobRepository, @Qualifier(JOB_NAME + "_step1") Step testStep1) {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .start(testStep1)
                 .build();

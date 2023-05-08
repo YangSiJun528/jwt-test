@@ -77,7 +77,7 @@ public class RenewalStatisticsJobConfiguration {
     public Step step0(JobRepository jobRepository,
                       PlatformTransactionManager transactionManager,
                       EntityManagerFactory entityManagerFactory
-                      ) {
+    ) {
         log.warn(BEAN_PREFIX + "step0");
         return new StepBuilder(BEAN_PREFIX + "step0", jobRepository)
                 .<Statistics, Statistics>chunk(CHUNK_SIZE, transactionManager)

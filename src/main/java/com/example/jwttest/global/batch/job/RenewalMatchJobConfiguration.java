@@ -219,7 +219,6 @@ public class RenewalMatchJobConfiguration {
     @JobScope
     public Step step3(JobRepository jobRepository,
                       PlatformTransactionManager transactionManager,
-                      EntityManagerFactory entityManagerFactory,
                       DataSource dataSource
     ) {
         log.warn(BEAN_PREFIX + "step3");

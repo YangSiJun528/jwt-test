@@ -30,7 +30,7 @@ public class Match {
 
     @Lob
     @Convert(converter = MapToJsonConverter.class)
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private Map<String, Object> response;
 
     @Column(nullable = false)

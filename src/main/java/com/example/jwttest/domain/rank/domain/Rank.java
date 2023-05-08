@@ -16,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Rank {
     @Id
+    @Column(name = "rank_id")
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
@@ -24,6 +25,7 @@ public class Rank {
 
     Long rankingNumber;
 
+    @Enumerated(EnumType.STRING)
     RankType rankType;
 
     String rankValue;

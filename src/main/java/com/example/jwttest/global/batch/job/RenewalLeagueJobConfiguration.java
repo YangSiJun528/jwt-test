@@ -1,10 +1,7 @@
 package com.example.jwttest.global.batch.job;
 
 import com.example.jwttest.domain.league.domain.League;
-import com.example.jwttest.domain.match.dto.MatchSummonerDto;
-import com.example.jwttest.domain.statistics.domain.Statistics;
 import com.example.jwttest.domain.summoner.domain.Summoner;
-import com.example.jwttest.global.batch.InMemCache;
 import com.example.jwttest.global.batch.InMemCacheLeague;
 import com.example.jwttest.global.riot.service.LeagueRiotApiService;
 import jakarta.persistence.EntityManagerFactory;
@@ -24,9 +21,7 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
-import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.support.ListItemReader;
@@ -36,7 +31,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -114,7 +108,7 @@ public class RenewalLeagueJobConfiguration {
             Set<Map<String, Object>> apiLeagues = leagueRiotApiService.getLeagueBySummonerId(summoner.getSummonerApiId());
             List<League> leagues = summoner.getLeagues();
             List<League> newLeagues = new ArrayList<>(Collections.emptyList());
-            for(Map<String, Object> league : apiLeagues) {
+            for (Map<String, Object> league : apiLeagues) {
                 String summonerId = (String) league.get("summonerId");
                 String queueType = (String) league.get("queueType");
                 String tier = (String) league.get("tier");
