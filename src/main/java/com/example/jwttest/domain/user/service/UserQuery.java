@@ -17,7 +17,7 @@ public class UserQuery {
 
     public UserDto execute(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ExpectedException("Token과 대응되는 User가 존재하지 않습니다", HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new ExpectedException("ID와 대응되는 User가 존재하지 않습니다", HttpStatus.BAD_REQUEST));
         return UserDto.from(user);
     }
 }

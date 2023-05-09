@@ -82,7 +82,9 @@ public class JwtManager {
                     .build()
                     .parseClaimsJws(token);
             return true;
+            // TODO Expried 예외처리하기
         } catch (JwtException | IllegalArgumentException e) {
+            log.error(e.toString());
             return false;
         }
     }

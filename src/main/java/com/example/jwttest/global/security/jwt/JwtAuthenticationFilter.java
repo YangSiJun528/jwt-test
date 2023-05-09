@@ -27,7 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        if (request.getServletPath().contains("/api/v1/auth")) {
+        if (request.getServletPath().contains("/api/auth/v1")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.debug("JWT : {}", jwt);
         if (jwtManager.validate(jwt)) {
             UserInfo userInfo = jwtManager.extractUserInfo(jwt);
-            log.debug("UserInfo : {}", userInfo);
+            log.warn("UserInfo : {}", userInfo);
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
                             userInfo,

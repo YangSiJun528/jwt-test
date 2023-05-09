@@ -1,10 +1,6 @@
 package com.example.jwttest.global.batch;
 
-import com.example.jwttest.domain.league.repository.LeagueRepository;
-import com.example.jwttest.domain.statistics.domain.Statistics;
 import com.example.jwttest.domain.statistics.repository.StatisticsRepository;
-import com.example.jwttest.domain.summoner.domain.Summoner;
-import com.example.jwttest.domain.summoner.dto.SummonerDto;
 import com.example.jwttest.domain.summoner.repository.SummonerRepository;
 import com.example.jwttest.global.riot.RiotApiUtil;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +15,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Component

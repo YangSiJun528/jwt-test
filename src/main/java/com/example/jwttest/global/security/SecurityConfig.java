@@ -1,5 +1,6 @@
 package com.example.jwttest.global.security;
 
+import com.example.jwttest.domain.user.enums.Role;
 import com.example.jwttest.global.security.jwt.JwtAuthenticationFilter;
 import com.example.jwttest.global.security.jwt.LogoutHandler;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,11 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(httpRequests -> httpRequests
                         .requestMatchers("/h2/**").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/rank/**").permitAll()
+                        .requestMatchers("/api/match/**").permitAll()
+                        .requestMatchers("/api/summoner/**").permitAll()
+                        .requestMatchers("/api/user/**").permitAll()
                         .anyRequest().permitAll()
                 )
                 .logout(logout -> logout

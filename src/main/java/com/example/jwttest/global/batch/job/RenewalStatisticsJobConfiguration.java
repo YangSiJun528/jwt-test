@@ -107,7 +107,6 @@ public class RenewalStatisticsJobConfiguration {
                 )
                 .parameterValues(parameterValues)
                 .build();
-
     }
 
     @Bean(BEAN_PREFIX + "itemWriter0")

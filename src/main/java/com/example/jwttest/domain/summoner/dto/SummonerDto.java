@@ -7,7 +7,7 @@ import com.example.jwttest.global.riot.RiotApiUtil;
 import java.util.UUID;
 
 public record SummonerDto(
-        String summonerApiId,
+        String id,
         String accountId,
         String puuid,
         String name,
@@ -17,8 +17,9 @@ public record SummonerDto(
 ) {
     public Summoner toEntity(User user) {
         return Summoner.builder()
+                .id(UUID.randomUUID())
                 .user(user)
-                .summonerApiId(this.summonerApiId)
+                .summonerApiId(this.id)
                 .accountId(this.accountId)
                 .puuid(this.puuid)
                 .name(this.name)
