@@ -1,23 +1,23 @@
 package com.example.jwttest.domain.rank.controller;
 
-import com.example.jwttest.domain.rank.enums.RankType;
 import com.example.jwttest.domain.rank.dto.RankResDto;
+import com.example.jwttest.domain.rank.enums.RankType;
 import com.example.jwttest.domain.rank.service.RanksQuery;
 import com.example.jwttest.global.exception.error.ExpectedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/api/rank/v1")
 @RequiredArgsConstructor
 public class RankController {

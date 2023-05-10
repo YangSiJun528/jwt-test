@@ -36,10 +36,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(httpRequests -> httpRequests
                         .requestMatchers("/h2/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/rank/**").permitAll()
-                        .requestMatchers("/api/match/**").permitAll()
-                        .requestMatchers("/api/summoner/**").permitAll()
-                        .requestMatchers("/api/user/**").permitAll()
+                        .requestMatchers("/api/rank/**").authenticated()
+                        .requestMatchers("/api/match/**").authenticated()
+                        .requestMatchers("/api/summoner/**").authenticated()
+                        .requestMatchers("/api/user/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .logout(logout -> logout

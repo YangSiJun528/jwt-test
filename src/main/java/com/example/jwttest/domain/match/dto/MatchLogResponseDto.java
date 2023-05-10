@@ -79,7 +79,7 @@ public record MatchLogResponseDto (
         int item5 = (int) participant.get("item5");
         int item6 = (int) participant.get("item6");
 
-        String championProfileUri = RiotApiUtil.getChampionImgUri(championId);
+        String championProfileUri = RiotApiUtil.getChampionImgUri(championName);
 
         String item0Uri = RiotApiUtil.getItemImgUri(item0);
         String item1Uri = RiotApiUtil.getItemImgUri(item1);

@@ -28,12 +28,8 @@ public class RiotApiUtil {
         return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/item/"+itemId+".png";
     }
 
-    public static String getSpellImgUri(int spellId) {
-        return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/spell/"+spellId+".png";
-    }
-
-    public static String getChampionImgUri(int championId) {
-        return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/champion/"+championId+".png";
+    public static String getChampionImgUri(String championName) {
+        return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/champion/"+championName+".png";
     }
 
 

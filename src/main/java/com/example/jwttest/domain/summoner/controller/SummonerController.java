@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/api/summoner/v1")
 @RequiredArgsConstructor
 public class SummonerController {
@@ -64,7 +63,7 @@ public class SummonerController {
             @RequestBody TerminateSummonerResDto reqDto
     ) {
         terminateSummonerService.execute(userInfo.userId(), reqDto);
-        return ResponseEntity.ok().body(Map.of("Message","Ok"));
+        return ResponseEntity.ok().body(Map.of("Message", "Ok"));
     }
 
 //    @PostMapping("summoner/by-user/{userId}") // 이게 맞나?

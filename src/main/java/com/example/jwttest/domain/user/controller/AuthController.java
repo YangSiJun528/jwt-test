@@ -15,14 +15,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/api/auth/v1")
 @RequiredArgsConstructor
 public class AuthController {
@@ -66,7 +65,6 @@ public class AuthController {
     @GetMapping("signout")
     public ResponseEntity<Map<String, String>> signOut(@AuthenticationPrincipal UserInfo userInfo) {
         log.info("{}", userInfo);
-        //UserInfo userInfo = SecurityUtil.getUserInfo();
         signoutService.execute(userInfo.userId());
         return ResponseEntity.ok().body(Map.of("message", "User가 성공적으로 삭제되었습니다"));
     }
