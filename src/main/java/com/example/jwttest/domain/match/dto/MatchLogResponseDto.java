@@ -20,7 +20,7 @@ public record MatchLogResponseDto (
         // 아이템, 스펠, 룬 정보 추출
         // rune 은 id
         // 나머지는 uri
-        String matchId, String gameMode, Long gameCreation, int gameDuration, Long gameEndTimestamp, String gameType, int mapId,
+        String matchId, String gameMode, Long gameCreation, int gameDuration, Long gameEndTimestamp, String gameType, int queueId, int mapId,
         boolean win, int champLevel, int championId, String championName, String championProfileUri,
         // double kda,
         int deaths, int kills, int assists,
@@ -45,6 +45,7 @@ public record MatchLogResponseDto (
         int gameDuration = (int) info.get("gameDuration");
         Long gameEndTimestamp = (Long) info.get("gameEndTimestamp");
         String gameType = (String) info.get("gameType");
+        int queueId = (int) info.get("queueId");  // 게임 타입
         int mapId = (int) info.get("mapId");
         boolean win = (boolean) participant.get("win");
 
@@ -90,7 +91,7 @@ public record MatchLogResponseDto (
         String item6Uri = RiotApiUtil.getItemImgUri(item6);
 
         return new MatchLogResponseDto(
-                matchId, gameMode, gameCreation, gameDuration, gameEndTimestamp, gameType, mapId, win,
+                matchId, gameMode, gameCreation, gameDuration, gameEndTimestamp, gameType, queueId, mapId, win,
                 champLevel, championId, championName, championProfileUri,
                 //kda,
                 deaths, kills, assists, summoner1Id, summoner2Id,
