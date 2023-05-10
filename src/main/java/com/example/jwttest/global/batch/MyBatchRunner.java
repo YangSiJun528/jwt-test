@@ -1,7 +1,10 @@
 package com.example.jwttest.global.batch;
 
 import com.example.jwttest.domain.statistics.repository.StatisticsRepository;
+import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.domain.summoner.repository.SummonerRepository;
+import com.example.jwttest.domain.user.domain.User;
+import com.example.jwttest.domain.user.repository.UserRepository;
 import com.example.jwttest.global.riot.RiotApiUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -24,6 +28,7 @@ public class MyBatchRunner implements CommandLineRunner {
     private final JobLauncher jobLauncher;
     private final SummonerRepository summonerRepository;
     private final StatisticsRepository statisticsRepository;
+    private final UserRepository userRepository;
 
     public void runJob() throws Exception {
         Job testJob = jobLocator.getJob("simpleJob");
@@ -76,8 +81,10 @@ public class MyBatchRunner implements CommandLineRunner {
 
     @Transactional
     public void init() {
-        summonerRepository.saveAll(RiotApiUtil.dummySummoner());
-        statisticsRepository.saveAll(RiotApiUtil.dummyStatistics());
+        User dummyUser1 = userRepository.save(RiotApiUtil.dummyUser1());
+        User dummyUser2 = userRepository.save(RiotApiUtil.dummyUser2());
+        List<Summoner> summoners = summonerRepository.saveAll(RiotApiUtil.dummySummoner(dummyUser1, dummyUser2));
+        statisticsRepository.saveAll(RiotApiUtil.dummyStatistics(summoners));
     }
 }
 

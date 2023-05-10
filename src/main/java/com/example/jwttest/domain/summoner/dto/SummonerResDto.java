@@ -3,7 +3,10 @@ package com.example.jwttest.domain.summoner.dto;
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.domain.user.dto.UserDto;
 
+import java.util.UUID;
+
 public record SummonerResDto(
+        UUID id, // nullable
         String summonerApiId,
         String accountId,
         String puuid,
@@ -16,6 +19,8 @@ public record SummonerResDto(
 ) {
     public static SummonerResDto fromRegistered(Summoner summoner) {
         return new SummonerResDto(
+                summoner.getId(),
+
                 summoner.getSummonerApiId(),
                 summoner.getAccountId(),
                 summoner.getPuuid(),
@@ -29,6 +34,7 @@ public record SummonerResDto(
     }
     public static SummonerResDto fromNonRegistered(SummonerDto summonerDto) {
         return new SummonerResDto(
+                null,
                 summonerDto.id(),
                 summonerDto.accountId(),
                 summonerDto.puuid(),
