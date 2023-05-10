@@ -28,8 +28,7 @@ public class User {
     private String profileUrl;
     private String gAuthRole;
     private Role role;
-    @CreatedDate
-    private LocalDateTime createdDate;
+    private LocalDateTime createdAt;
 
     public static User from(GAuthUserInfo info) {
         return User.builder()
@@ -43,7 +42,7 @@ public class User {
                 .profileUrl(info.getProfileUrl())
                 .gAuthRole(info.getRole())
                 .role(Role.ROLE_USER)
-                .createdDate(null)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 }

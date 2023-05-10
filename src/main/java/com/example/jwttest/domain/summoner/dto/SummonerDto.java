@@ -24,7 +24,7 @@ public record SummonerDto(
                 .puuid(this.puuid)
                 .name(this.name)
                 .profileIconId(this.profileIconId)
-                .profileIconIdUri(RiotApiUtil.getImgUri(this.profileIconId))
+                .profileIconIdUri(RiotApiUtil.getProfileImgUri(this.profileIconId))
                 .revisionDate(this.revisionDate)
                 .summonerLevel(this.summonerLevel)
                 .build();

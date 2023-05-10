@@ -11,7 +11,6 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@ToString
 public class Statistics {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

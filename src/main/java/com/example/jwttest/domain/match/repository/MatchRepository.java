@@ -14,15 +14,13 @@ import java.util.UUID;
 
 public interface MatchRepository extends JpaRepository<Match, UUID> {
 
-    // 생각해보니까 MatchSummoner가 있어서 이렇게 번거롭게 안해도 됨
-
-    @Query("SELECT m FROM Match m JOIN m.summoners ms WHERE ms.summoner = :summoner AND m.startedAt BETWEEN :startTimestamp AND :endTimestamp ORDER BY m.startedAt")
-    Page<Match> findBySummonerIdAndStartedAtBetween(
+    @Query("SELECT m FROM Match m JOIN m.summoners ms WHERE ms.summoner = :summoner AND m.startedAt BETWEEN :startDateTime AND :endDateTime ORDER BY m.startedAt")
+    Page<Match> findAllBySummonerIdAndStartedAtBetween(
             @Param("summoner") Summoner summoner,
-            @Param("startTimestamp") LocalDateTime startTimestamp,
-            @Param("endTimestamp") LocalDateTime endTimestamp,
+            @Param("startDateTime") LocalDateTime startDateTime,
+            @Param("endDateTime") LocalDateTime endDateTime,
             Pageable pageable);
 
-    @Query("SELECT m FROM Match m JOIN m.summoners ms WHERE ms.id = :summonerId ORDER BY m.startedAt")
-    Page<Match> findBySummonerId(@Param("summonerId") String summonerId, Pageable pageable);
+    @Query("SELECT m FROM Match m JOIN m.summoners ms WHERE ms.summoner = :summoner ORDER BY m.startedAt")
+    Page<Match> findAllBySummonerId(@Param("summoner") Summoner summoner, Pageable pageable);
 }

@@ -10,15 +10,28 @@ import java.util.UUID;
 
 @Component
 public class RiotApiUtil {
-    public static final String API_KEY = "RGAPI-5f8282a5-5434-46c8-8af7-624bdc1af714";
+    public static final String API_KEY = "RGAPI-2b154887-d933-4af5-9066-e566bc15885c";
     public static final RestTemplate REST = new RestTemplate();
 
     // https://ddragon.leagueoflegends.com/api/versions.json << 여기에서 확인할 수 있음
     public static final String IMG_URI_VERSION = "13.9.1";
 
-    public static String getImgUri(int profileIconId) {
+    public static String getProfileImgUri(int profileIconId) {
         return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/profileicon/"+profileIconId+".png";
     }
+
+    public static String getItemImgUri(int itemId) {
+        return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/item/"+itemId+".png";
+    }
+
+    public static String getSpellImgUri(int spellId) {
+        return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/spell/"+spellId+".png";
+    }
+
+    public static String getChampionImgUri(int championId) {
+        return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/champion/"+championId+".png";
+    }
+
 
     private static Summoner s1 = Summoner.builder()
             .id(UUID.randomUUID())
@@ -27,7 +40,7 @@ public class RiotApiUtil {
             .puuid("JRv9GZ1NllHPUY1DXqQZ66yWwbDNIdi8UDeOtW-4pFxPQMhr17Vc5x1yrhWFehSvyeP2sU3rWiSO2g")
             .name("메추리 알빠노")
             .profileIconId(5389)
-            .profileIconIdUri(RiotApiUtil.getImgUri(5389))
+            .profileIconIdUri(RiotApiUtil.getProfileImgUri(5389))
             .revisionDate(1683041620434L)
             .summonerLevel(2448)
             .build();
@@ -38,7 +51,7 @@ public class RiotApiUtil {
             .puuid("ad951W1ExSx9ho7R4eYMZvAMB8wEMLvh-Z-azO1zh3gFkGqFg3ESYZySp9ed-O-IbY0N7mMWT813Fg")
             .name("잠은 뒤져서 잔다")
             .profileIconId(5464)
-            .profileIconIdUri(RiotApiUtil.getImgUri(5464))
+            .profileIconIdUri(RiotApiUtil.getProfileImgUri(5464))
             .revisionDate(1683034046273L)
             .summonerLevel(2422)
             .build();
@@ -49,7 +62,7 @@ public class RiotApiUtil {
             .puuid("pX1roodpuAb1soUN394FlIpYxPmXJyrsdWUYhQEEpM9SjT5sW-pKWhVXW09_3BusJyxAUQy7Z2n7-A")
             .name("Faker")
             .profileIconId(6)
-            .profileIconIdUri(RiotApiUtil.getImgUri(6))
+            .profileIconIdUri(RiotApiUtil.getProfileImgUri(6))
             .revisionDate(1683082584000L)
             .summonerLevel(45)
             .build();

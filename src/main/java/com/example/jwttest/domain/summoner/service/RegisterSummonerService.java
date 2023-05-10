@@ -43,7 +43,7 @@ public class RegisterSummonerService {
             return summonerDto;
         } catch (HttpClientErrorException e) {
             if(e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new ExpectedException("summonerName을 가지는 Summoner가 존재하지 않습니다", HttpStatus.BAD_REQUEST);
+                throw new ExpectedException("summonerName을 가지는 Summoner가 존재하지 않습니다", HttpStatus.NOT_FOUND);
             }
         }
         throw new IllegalStateException("getSummonerDto에 의도하지 않은 결과가 발생했습니다.");
