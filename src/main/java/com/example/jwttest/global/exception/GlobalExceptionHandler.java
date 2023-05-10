@@ -4,6 +4,7 @@ import com.example.jwttest.global.exception.error.ExpectedException;
 import com.example.jwttest.global.exception.model.ExceptionResponseEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gauth.exception.GAuthException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,11 +12,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@EnableWebMvc
 @Slf4j
 public class GlobalExceptionHandler {
 
@@ -36,6 +39,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ExceptionResponseEntity> noHandlerFoundException(NoHandlerFoundException ex) {
         return ResponseEntity.status(ex.getStatusCode())
                 .body(new ExceptionResponseEntity(HttpStatus.NOT_FOUND.getReasonPhrase()));
+    }
+
+    @ExceptionHandler(GAuthException.class)
+    public ResponseEntity<ExceptionResponseEntity> gAuthException(GAuthException ex) {
+        return ResponseEntity.status(ex.getCode())
+                .body(new ExceptionResponseEntity("[GAuth ERROR] " + HttpStatus.valueOf(ex.getCode()).getReasonPhrase()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
