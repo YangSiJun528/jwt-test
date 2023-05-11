@@ -10,6 +10,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -26,6 +27,13 @@ import java.time.LocalDateTime;
 @Configuration
 @RequiredArgsConstructor
 public class TestJobConfiguration {
+
+    /**
+     * <h3>실행 예시 파라미터</h3>
+     * --spring.batch.job.enabled=true --spring.batch.job.name=simpleJob date=2023-05-10T02:00:00 status=test_status_1234
+     * 웹 어플리케션을 함께 사용하느라 spring.batch.job.enabled false로 설정해서 true로 바꿔줘야 함
+     * 실행할 job이 여러개면 job.name=job1,job2 처럼 선언해서 실행 가능함
+     */
 
     private int CHUNK_SIZE = 1;
     private final String JOB_NAME = "simpleJob";
@@ -48,6 +56,7 @@ public class TestJobConfiguration {
     @Bean
     public Job simpleJob(JobRepository jobRepository, @Qualifier(JOB_NAME + "_step1") Step testStep1) {
         return new JobBuilder(JOB_NAME, jobRepository)
+                .incrementer(new RunIdIncrementer())
                 .start(testStep1)
                 .build();
     }
@@ -58,6 +67,7 @@ public class TestJobConfiguration {
             @Value("#{jobParameters[date]}") LocalDateTime date,
             @Value("#{jobParameters[status]}") String status
     ) {
+        log.warn("jobParameter : {}, {}", date, status);
         return new JobParameter(date, status);
     }
 
