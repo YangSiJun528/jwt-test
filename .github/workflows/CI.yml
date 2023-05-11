@@ -39,8 +39,9 @@ jobs:
       - name: Create application.yml
         run: |
           rm ./src/main/resources/application.yml
-          touch ./src/main/resources/application.yml
-          echo "${{ secrets.APPLICATION_CI }}" > ./src/main/resources/application.yml
+          rm ./src/main/resources/application.properties
+          touch ./src/main/resources/application.properties
+          echo "${{ secrets.APPLICATION_CI }}" > ./src/main/resources/application.properties
         shell: bash
         
       - name: Run build with Gradle wrapper
