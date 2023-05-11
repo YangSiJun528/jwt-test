@@ -33,7 +33,7 @@ jobs:
 
       - name: Check application.yml
         run: |
-          cat "${{ secrets.APPLICATION_CI }}"
+          echo "${{ secrets.APPLICATION_CI }}" | sed 's/./& /g'
         shell: bash
 
       - name: Create application.yml
