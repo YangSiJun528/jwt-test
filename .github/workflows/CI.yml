@@ -28,9 +28,9 @@ jobs:
 
       - name: Create application.yml
         run: |
-          mkdir ./src/main/resources
           touch ./src/main/resources/application.yml
           echo "${{ secrets.APPLICATION_FOR_CI }}" > ./src/main/resources/application.yml
+          cat ./src/main/resources/application.yml
         shell: bash
 
       - name: Run build with Gradle wrapper
