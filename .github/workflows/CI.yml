@@ -28,7 +28,7 @@ jobs:
         
       - name: Check secrets
         run: |
-          echo ${{ secrets.TEST }} | sed 's/./& /g'
+          echo "${{ secrets.TEST }}" | sed 's/./& /g'
         shell: bash
 
       - name: Check application.yml
