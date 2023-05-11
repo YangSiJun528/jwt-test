@@ -12,7 +12,7 @@ import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@OpenAPIDefinition
+@OpenAPIDefinition // swagger 설정
 @EnableConfigurationProperties({GauthEnvironment.class, JwtEnvironment.class})
 public class JwtTestApplication {
 

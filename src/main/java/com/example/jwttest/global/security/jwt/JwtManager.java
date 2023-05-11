@@ -31,7 +31,7 @@ public class JwtManager {
             Map<String, Object> extraClaims,
             UserInfo userInfo
     ) {
-        return buildToken(extraClaims, userInfo, env.getAccessExpiration());
+        return buildToken(extraClaims, userInfo, env.accessExpiration());
     }
 
     /**
@@ -42,7 +42,7 @@ public class JwtManager {
     public String generateRefreshToken(
             UserInfo userInfo
     ) {
-        return buildToken(new HashMap<>(), userInfo, env.getRefreshExpiration());
+        return buildToken(new HashMap<>(), userInfo, env.refreshExpiration());
     }
 
     /**
@@ -58,7 +58,7 @@ public class JwtManager {
             long expiration
     ) {
         JwtBuilder jwtBuilder = Jwts.builder()
-                .setIssuer(env.getIssuer())
+                .setIssuer(env.issuer())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .setSubject(userInfo.userId().toString())
@@ -77,7 +77,7 @@ public class JwtManager {
         try {
             Jwts
                     .parserBuilder()
-                    .requireIssuer(env.getIssuer())
+                    .requireIssuer(env.issuer())
                     .setSigningKey(getSignInKey())
                     .build()
                     .parseClaimsJws(token);
@@ -142,7 +142,7 @@ public class JwtManager {
      */
     private Key getSignInKey() {
         // 환경 변수에서 비밀 키를 디코딩하여 바이트 배열을 초기화합니다.
-        byte[] keyBytes = Decoders.BASE64.decode(env.getSecretKey());
+        byte[] keyBytes = Decoders.BASE64.decode(env.secretKey());
         // 디코딩된 키 바이트를 기반으로 새로운 HMAC-SHA 키 객체를 반환합니다.
         return Keys.hmacShaKeyFor(keyBytes);
     }

@@ -36,7 +36,7 @@ public class AuthController {
     @GetMapping("gauth/code") // /api/auth/v1/gauth/code?code=
     public ResponseEntity<TokenResDto> gauthCode(@RequestParam(value = "code") String code) throws IOException {
 
-        GAuthToken generateToken = gAuth.generateToken(code, env.getClientId(), env.getClientSecret(), env.getRedirectUri());
+        GAuthToken generateToken = gAuth.generateToken(code, env.clientId(), env.clientSecret(), env.redirectUri());
         GAuthUserInfo gAuthUserInfo = gAuth.getUserInfo(generateToken.getAccessToken());
 
         return ResponseEntity.ok().body(signInService.execute(gAuthUserInfo));
