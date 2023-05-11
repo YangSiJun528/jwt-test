@@ -2,9 +2,9 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ "renew-1" ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ "renew-1" ]
+    branches: [ "*" ]
 
 jobs:
   CI:
