@@ -1,4 +1,4 @@
-name: Spring Boot & Gradle CI/CD 
+name: Spring Boot & Gradle CI/CD
 
 on:
   push:
@@ -9,37 +9,29 @@ on:
 jobs:
   CI:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
-        
-    - name: Build with Gradle
-      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      with:
-        arguments: build
-        
-    - name: Setup Gradle
-      uses: gradle/gradle-build-action@v2
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
 
-    - name: Setup Gradls's permission
-      run : chmod +x gradlew 
-      
-    - name: Create application.yml
-      run: |
-        if [ ! -d "./src/main/resources" ]; then
-          mkdir ./src/main/resources
-        fi
-        touch ./src/main/resources/application.yml
-        echo "${{ secrets.APPLICATION_FOR_CI }}" > ./src/main/resources/application.yml
-      shell: bash
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
 
-    - name: Run build with Gradle wrapper
-      run: ./gradlew clean build
+      - name: Setup Gradls's permission
+        run : chmod +x gradlew 
+
+      - name: Create application.yml
+        run: |
+          touch ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
+          cat ./src/main/resources/application.yml
+        shell: bash
+
+      - name: Run build with Gradle wrapper
+        run: ./gradlew clean build
