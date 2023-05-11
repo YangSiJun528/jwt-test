@@ -30,7 +30,7 @@ jobs:
         run: |
           touch ./test.txt
           echo "${{ secrets.TEST }}" > ./test.txt
-          echo ./test.txt
+          cat ./test.txt
         shell: bash
 
       - name: Check application.yml
