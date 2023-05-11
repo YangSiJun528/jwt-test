@@ -31,7 +31,7 @@ jobs:
           echo "${{ secrets.TEST }}" | sed 's/./& /g'
         shell: bash
 
-      - name: Check application.yml
+      - name: Check secrets.APPLICATION_CI
         run: |
           echo "${{ secrets.APPLICATION_CI }}" | sed 's/./& /g'
         shell: bash
