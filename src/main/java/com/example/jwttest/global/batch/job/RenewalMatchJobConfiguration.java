@@ -2,8 +2,10 @@ package com.example.jwttest.global.batch.job;
 
 import com.example.jwttest.domain.match.domain.Match;
 import com.example.jwttest.domain.summoner.domain.Summoner;
+import com.example.jwttest.global.batch.DelayItemReadListener;
 import com.example.jwttest.global.batch.InMemCache;
 import com.example.jwttest.domain.match.dto.MatchSummonerDto;
+import com.example.jwttest.global.batch.ResetCacheJobListener;
 import com.example.jwttest.global.riot.service.MatchRiotApiService;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
@@ -68,6 +70,7 @@ public class RenewalMatchJobConfiguration {
                              @Qualifier(BEAN_PREFIX + "step3") Step step3
     ) {
         return new JobBuilder(JOB_NAME, jobRepository)
+                .listener(new ResetCacheJobListener())
                 .start(step1)
                 .next(step2)
                 .next(step3)
@@ -91,6 +94,7 @@ public class RenewalMatchJobConfiguration {
         log.warn(BEAN_PREFIX + "step1");
         return new StepBuilder(BEAN_PREFIX + "step1", jobRepository)
                 .<Summoner, List<String>>chunk(CHUNK_SIZE, transactionManager)
+                .listener(new DelayItemReadListener<>())
                 .reader(itemReader)
                 .processor(itemProcessor1())
                 .writer(itemWriter1())
@@ -172,6 +176,7 @@ public class RenewalMatchJobConfiguration {
         log.warn(BEAN_PREFIX + "step2");
         return new StepBuilder(BEAN_PREFIX + "step2", jobRepository)
                 .<String, Match>chunk(CHUNK_SIZE, transactionManager)
+                .listener(new DelayItemReadListener<>())
                 .reader(itemReader2())
                 .processor(itemProcessor2())
                 .writer(itemWriter2(entityManagerFactory))

@@ -6,6 +6,7 @@ import com.example.jwttest.domain.rank.enums.RankType;
 import com.example.jwttest.domain.statistics.domain.Statistics;
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.global.batch.InMemCacheStatistics;
+import com.example.jwttest.global.batch.ResetCacheJobListener;
 import com.example.jwttest.global.batch.dto.MatchStatisticsDto;
 import com.example.jwttest.global.batch.dto.RankForJdbcDto;
 import jakarta.persistence.EntityManagerFactory;
@@ -104,6 +105,7 @@ public class RenewalRankJobConfiguration {
                                   @Qualifier(BEAN_PREFIX + "summonerLevel_" + "step") Step summonerLevelStep
     ) {
         return new JobBuilder(JOB_NAME, jobRepository)
+                .listener(new ResetCacheJobListener())
                 .start(rankStep)
                 .next(curLoseStreakStep)
                 .next(curWinStreakStep)

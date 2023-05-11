@@ -2,7 +2,9 @@ package com.example.jwttest.global.batch.job;
 
 import com.example.jwttest.domain.league.domain.League;
 import com.example.jwttest.domain.summoner.domain.Summoner;
+import com.example.jwttest.global.batch.DelayItemReadListener;
 import com.example.jwttest.global.batch.InMemCacheLeague;
+import com.example.jwttest.global.batch.ResetCacheJobListener;
 import com.example.jwttest.global.riot.service.LeagueRiotApiService;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
@@ -68,6 +70,7 @@ public class RenewalLeagueJobConfiguration {
                                   @Qualifier(BEAN_PREFIX + "step2") Step step2
     ) {
         return new JobBuilder(JOB_NAME, jobRepository)
+                .listener(new ResetCacheJobListener())
                 .start(step1)
                 .next(step2)
                 .build();
@@ -82,6 +85,7 @@ public class RenewalLeagueJobConfiguration {
         log.warn(BEAN_PREFIX + "step1");
         return new StepBuilder(BEAN_PREFIX + "step1", jobRepository)
                 .<Summoner, List<League>>chunk(CHUNK_SIZE, transactionManager)
+                .listener(new DelayItemReadListener<>())
                 .reader(itemReader1(entityManagerFactory))
                 .processor(itemProcessor1())
                 .writer(itemWriter1())
@@ -167,6 +171,7 @@ public class RenewalLeagueJobConfiguration {
         log.warn(BEAN_PREFIX + "step2");
         return new StepBuilder(BEAN_PREFIX + "step2", jobRepository)
                 .<League, League>chunk(CHUNK_SIZE, transactionManager)
+                .listener(new DelayItemReadListener<>())
                 .reader(itemReader2())
                 .writer(itemWriter2(entityManagerFactory))
                 .build();

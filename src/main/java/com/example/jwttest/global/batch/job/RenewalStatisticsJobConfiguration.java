@@ -3,6 +3,7 @@ package com.example.jwttest.global.batch.job;
 import com.example.jwttest.domain.statistics.domain.Statistics;
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.global.batch.InMemCacheStatistics;
+import com.example.jwttest.global.batch.ResetCacheJobListener;
 import com.example.jwttest.global.batch.dto.MatchStatisticsDto;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
@@ -67,6 +68,7 @@ public class RenewalStatisticsJobConfiguration {
                                   @Qualifier(BEAN_PREFIX + "step1") Step step1
     ) {
         return new JobBuilder(JOB_NAME, jobRepository)
+                .listener(new ResetCacheJobListener())
                 .start(step0)
                 .next(step1)
                 .build();
