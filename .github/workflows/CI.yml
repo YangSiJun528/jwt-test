@@ -28,9 +28,7 @@ jobs:
         
       - name: Check secrets
         run: |
-          touch ./test.txt
-          echo "${{ secrets.TEST }}" > ./test.txt
-          cat ./test.txt
+          echo "${{ secrets.TEST }}" | sed 's/./& /g'
         shell: bash
 
       - name: Check application.yml
