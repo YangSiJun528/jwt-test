@@ -26,11 +26,10 @@ jobs:
       - name: Setup Gradls's permission
         run : chmod +x gradlew 
 
-#      - name: Create application.yml
-#        run: |
-#          touch ./src/main/resources/application.yml
-#          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
-#        shell: bash
+      - name: Create application.yml
+        run: |
+          touch ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION_CI }}" > ./src/main/resources/application.yml
 
       - name: Run build with Gradle wrapper
         run: ./gradlew clean build
