@@ -2,9 +2,9 @@ name: Spring Boot & Gradle CI/CD
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "renew-1" ]
   pull_request:
-    branches: [ "*" ]
+    branches: [ "renew-1" ]
 
 jobs:
   CI:
@@ -34,7 +34,9 @@ jobs:
       
     - name: Create application.yml
       run: |
-        mkdir ./src/main/resources
+        if [ ! -d "./src/main/resources" ]; then
+          mkdir ./src/main/resources
+        fi
         touch ./src/main/resources/application.yml
         echo "${{ secrets.APPLICATION_FOR_CI }}" > ./src/main/resources/application.yml
       shell: bash
