@@ -26,16 +26,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
         
-      - name: Check secrets
-        run: |
-          echo "${{ secrets.TEST }}" | sed 's/./& /g'
-        shell: bash
-
-      - name: Check secrets.APPLICATION_CI
-        run: |
-          echo "${{ secrets.APPLICATION_CI }}" | sed 's/./& /g'
-        shell: bash
-
       - name: Create application.properties
         run: |
           rm -f ./src/main/resources/application.yml
