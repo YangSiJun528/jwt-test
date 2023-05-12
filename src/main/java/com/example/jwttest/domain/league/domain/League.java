@@ -22,10 +22,11 @@ public class League {
 
     private String queueType;
     private String tier; // IRON - GOLD
-    private String rank; // I - III - VI
+    private String rankNum; // I - III - VI
     private int leaguePoints; // 0 ~ 100
     private int wins;
     private int losses;
+
 
     @Column(nullable = false)
     private LocalDateTime modifiedAt;

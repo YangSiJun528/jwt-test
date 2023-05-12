@@ -13,6 +13,7 @@ import java.util.Map;
 
 @Entity
 @Getter
+@Table(name = "`match`")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Match {

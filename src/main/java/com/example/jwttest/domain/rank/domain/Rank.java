@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Getter
+@Table(name = "`rank`")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Rank {
