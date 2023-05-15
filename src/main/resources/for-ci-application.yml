@@ -14,7 +14,7 @@ spring:
       initialize-schema: always
     job:
       enabled: false
-      name: ${job.name:NONE}
+
   h2:
     console:
       enabled: true
@@ -44,3 +44,7 @@ jwt:
   access-expiration: 86400000
   refresh-expiration: 604800000
   issuer: example.com
+
+riot:
+  api-version: 13.9.1
+  api-key: RGAPI-663fe382-48f2-41c5-974c-86d293b49b0a # 매번 갱신 필요 << 근데 단순 컴파일 확인용도는 없거나 만료되어도 상관없긴함

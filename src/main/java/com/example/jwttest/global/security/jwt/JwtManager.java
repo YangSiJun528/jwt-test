@@ -23,8 +23,9 @@ public class JwtManager {
 
     /**
      * 주어진 사용자 정보와 추가 클레임 정보를 이용하여 JWT 토큰을 생성합니다.
+     *
      * @param extraClaims JWT 토큰에 추가할 클레임 정보
-     * @param userInfo JWT 토큰에 담을 사용자 정보
+     * @param userInfo    JWT 토큰에 담을 사용자 정보
      * @return 생성된 JWT 토큰
      */
     public String generateToken(
@@ -36,6 +37,7 @@ public class JwtManager {
 
     /**
      * 주어진 사용자 정보를 이용하여 JWT refresh 토큰을 생성합니다.
+     *
      * @param userInfo JWT refresh 토큰에 담을 사용자 정보
      * @return 생성된 JWT refresh 토큰
      */
@@ -47,9 +49,10 @@ public class JwtManager {
 
     /**
      * 주어진 extraClaims, userDetails, expiration 정보를 이용해 JWT 토큰을 생성합니다.
+     *
      * @param extraClaims JWT 토큰에 추가할 클레임 정보
-     * @param userInfo JWT 토큰에 저장할 사용자 정보
-     * @param expiration JWT 토큰의 만료 시간 (밀리초)
+     * @param userInfo    JWT 토큰에 저장할 사용자 정보
+     * @param expiration  JWT 토큰의 만료 시간 (밀리초)
      * @return 생성된 JWT 토큰
      */
     private String buildToken(
@@ -73,24 +76,35 @@ public class JwtManager {
         return jwtBuilder.signWith(getSignInKey(), SignatureAlgorithm.HS256).compact();
     }
 
-    public boolean validate(String token) {
-        try {
-            Jwts
-                    .parserBuilder()
-                    .requireIssuer(env.issuer())
-                    .setSigningKey(getSignInKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-            // TODO Expried 예외처리하기
-        } catch (JwtException | IllegalArgumentException e) {
-            log.error(e.toString());
-            return false;
-        }
+//    public boolean validate(String token) {
+//        try {
+//            Jwts
+//                    .parserBuilder()
+//                    .requireIssuer(env.issuer())
+//                    .setSigningKey(getSignInKey())
+//                    .build()
+//                    .parseClaimsJws(token);
+//            return true;
+//            // TODO Expried 예외처리하기
+//        } catch (JwtException | IllegalArgumentException e) {
+//            log.error(e.toString());
+//            return false;
+//        }
+//    }
+
+    public boolean validate(String token) throws JwtException {
+        Jwts
+                .parserBuilder()
+                .requireIssuer(env.issuer())
+                .setSigningKey(getSignInKey())
+                .build()
+                .parseClaimsJws(token);
+        return true;
     }
 
     /**
      * 주어진 JWT 토큰에서 모든 클레임 값을 추출합니다.
+     *
      * @param token 추출할 JWT 토큰
      * @return JWT 토큰에서 추출한 모든 클레임
      */
@@ -125,9 +139,10 @@ public class JwtManager {
 
     /**
      * JWT 토큰에서 주어진 {@link Function}을 이용하여 클레임을 추출합니다.
-     * @param token 추출할 JWT 토큰
+     *
+     * @param token          추출할 JWT 토큰
      * @param claimsResolver 추출할 클레임 정보를 담은 {@link Function}
-     * @param <T> 추출할 클레임 정보의 타입
+     * @param <T>            추출할 클레임 정보의 타입
      * @return 추출된 클레임 정보
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
