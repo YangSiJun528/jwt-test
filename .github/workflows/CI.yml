@@ -26,12 +26,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
         
-      - name: Create application.properties
+      - name: Create application.yml
         run: |
           rm -f ./src/main/resources/application.yml
           rm -f ./src/main/resources/application.properties
-          touch ./src/main/resources/application.properties
-          echo "${{ secrets.APPLICATION_CI }}" > ./src/main/resources/application.properties
+          touch ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION_CI }}" > ./src/main/resources/application.yml
         shell: bash
         
       - name: Run build with Gradle wrapper
