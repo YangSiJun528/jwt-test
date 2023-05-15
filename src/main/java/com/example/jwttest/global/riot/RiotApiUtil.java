@@ -5,6 +5,8 @@ import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.domain.user.domain.User;
 import com.example.jwttest.domain.user.dto.UserDto;
 import com.example.jwttest.domain.user.enums.Role;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,22 +16,25 @@ import java.util.UUID;
 
 @Component
 public class RiotApiUtil {
-    public static final String API_KEY = "RGAPI-663fe382-48f2-41c5-974c-86d293b49b0a";
+    
+    @Value("${riot.api-key}")
+    public static String API_KEY;
     public static final RestTemplate REST = new RestTemplate();
 
     // https://ddragon.leagueoflegends.com/api/versions.json << 여기에서 확인할 수 있음
-    public static final String IMG_URI_VERSION = "13.9.1";
+    @Value("${riot.api-version}")
+    public static String API_VERSION;
 
     public static String getProfileImgUri(int profileIconId) {
-        return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/profileicon/"+profileIconId+".png";
+        return "https://ddragon.leagueoflegends.com/cdn/"+API_VERSION+"/img/profileicon/"+profileIconId+".png";
     }
 
     public static String getItemImgUri(int itemId) {
-        return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/item/"+itemId+".png";
+        return "https://ddragon.leagueoflegends.com/cdn/"+API_VERSION+"/img/item/"+itemId+".png";
     }
 
     public static String getChampionImgUri(String championName) {
-        return "https://ddragon.leagueoflegends.com/cdn/"+IMG_URI_VERSION+"/img/champion/"+championName+".png";
+        return "https://ddragon.leagueoflegends.com/cdn/"+API_VERSION+"/img/champion/"+championName+".png";
     }
 
 
