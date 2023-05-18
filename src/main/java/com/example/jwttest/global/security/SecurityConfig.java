@@ -3,8 +3,10 @@ package com.example.jwttest.global.security;
 import com.example.jwttest.domain.user.enums.Role;
 import com.example.jwttest.global.security.jwt.JwtAuthenticationEntryPoint;
 import com.example.jwttest.global.security.jwt.JwtAuthenticationFilter;
+import com.example.jwttest.global.security.jwt.JwtEnvironment;
 import com.example.jwttest.global.security.jwt.LogoutHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,7 +21,8 @@ import org.springframework.web.cors.CorsConfiguration;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
+    @Value("${auth.redirect-uri}")
+    private String logoutRedirectUri;
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final LogoutHandler logoutHandler;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -50,6 +53,7 @@ public class SecurityConfig {
                         .logoutUrl("/api/auth/v1/logout")
                         .addLogoutHandler(logoutHandler)
                         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
+                        .logoutSuccessUrl(logoutRedirectUri)
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptionHandling -> exceptionHandling
