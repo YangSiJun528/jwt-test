@@ -28,28 +28,28 @@ public class SummonerController {
     private final RegisterSummonerService registerSummonerService;
     private final TerminateSummonerService terminateSummonerService;
 
-    @GetMapping("summoners/by-user")
+    @GetMapping("/summoners/by-user")
     public ResponseEntity<List<SummonerResDto>> getSummonerByUserToken(@AuthenticationPrincipal UserInfo userInfo) {
         return ResponseEntity.ok().body(summonersQuery.execute(userInfo.userId()));
     }
 
-    @GetMapping("summoners/by-user/{userId}")
+    @GetMapping("/summoners/by-user/{userId}")
     public ResponseEntity<List<SummonerResDto>> getSummonerByUserId(@PathVariable String userId) {
         return ResponseEntity.ok().body(summonersQuery.execute(UUID.fromString(userId)));
     }
 
     // 얘만 응답 형식에 등록 여부 등 좀 다른 DTO
-    @GetMapping("summoner/by-name/{summonerName}")
+    @GetMapping("/summoner/by-name/{summonerName}")
     public ResponseEntity<SummonerResDto> getSummonerBySummonerName(@PathVariable String summonerName) {
         return ResponseEntity.ok().body(summonerQuery.execute(summonerName));
     }
 
-    @GetMapping("summoner/{summonerId}")
+    @GetMapping("/summoner/{summonerId}")
     public ResponseEntity<SummonerResDto> getSummonerBySummonerId(@PathVariable UUID summonerId) {
         return ResponseEntity.ok().body(summonerQuery.execute(summonerId));
     }
 
-    @PostMapping("summoner")
+    @PostMapping("/summoner")
     public ResponseEntity<SummonerResDto> registerSummonerByUserToken(
             @AuthenticationPrincipal UserInfo userInfo,
             @RequestBody RegisterSummonerReqDto reqDto
@@ -57,7 +57,7 @@ public class SummonerController {
         return ResponseEntity.ok().body(registerSummonerService.execute(userInfo.userId(), reqDto));
     }
 
-    @DeleteMapping("summoner")
+    @DeleteMapping("/summoner")
     public ResponseEntity<Map<String, String>> terminateSummonerByUserToken(
             @AuthenticationPrincipal UserInfo userInfo,
             @RequestBody TerminateSummonerResDto reqDto

@@ -33,7 +33,7 @@ public class AuthController {
     private final GAuth gAuth;
 
 
-    @GetMapping("gauth/code") // /api/auth/v1/gauth/code?code=
+    @GetMapping("/gauth/code") // /api/auth/v1/gauth/code?code=
     public ResponseEntity<TokenResDto> gauthCode(@RequestParam(value = "code") String code) throws IOException {
 
         GAuthToken generateToken = gAuth.generateToken(code, env.clientId(), env.clientSecret(), env.redirectUri());
@@ -62,14 +62,14 @@ public class AuthController {
     }
      */
 
-    @GetMapping("signout")
+    @GetMapping("/signout")
     public ResponseEntity<Map<String, String>> signOut(@AuthenticationPrincipal UserInfo userInfo) {
         log.info("{}", userInfo);
         signoutService.execute(userInfo.userId());
         return ResponseEntity.ok().body(Map.of("message", "User가 성공적으로 삭제되었습니다"));
     }
 
-    @PostMapping("refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<TokenResDto> refresh(@Valid @RequestBody RefreshTokenReqDto refreshTokenReqDto) {
         return ResponseEntity.ok().body(refreshTokenService.execute(refreshTokenReqDto));
     }
