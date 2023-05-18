@@ -33,7 +33,7 @@ services:
       JOB_ENABLED: false
       DDL_AUTO: validate
       JOB_NAME:
-      RIOT_API_KEY: RGAPI-ec2ef9f1-5beb-4673-8311-e394883c7823
+      RIOT_API_KEY: RGAPI-04db374f-a866-43b7-8f51-7421418f1a08
     networks:
       - gol-backend
 
