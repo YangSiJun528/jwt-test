@@ -16,29 +16,38 @@ import java.util.UUID;
 
 @Component
 public class RiotApiUtil {
-    
-    @Value("${riot.api-key}")
-    public static String API_KEY;
-    public static final RestTemplate REST = new RestTemplate();
+    public String API_VERSION() {
+        return API_VERSION;
+    }
+
+    public String API_KEY() {
+        return API_KEY;
+    }
 
     // https://ddragon.leagueoflegends.com/api/versions.json << 여기에서 확인할 수 있음
     @Value("${riot.api-version}")
-    public static String API_VERSION;
+    private String API_VERSION;
+
+    @Value("${riot.api-key}")
+    private String API_KEY;
+
+    public static final RestTemplate REST = new RestTemplate();
+
 
     public static String getProfileImgUri(int profileIconId) {
-        return "https://ddragon.leagueoflegends.com/cdn/"+API_VERSION+"/img/profileicon/"+profileIconId+".png";
+        return "https://ddragon.leagueoflegends.com/cdn/"+"13.9.1"+"/img/profileicon/"+profileIconId+".png";
     }
 
     public static String getItemImgUri(int itemId) {
-        return "https://ddragon.leagueoflegends.com/cdn/"+API_VERSION+"/img/item/"+itemId+".png";
+        return "https://ddragon.leagueoflegends.com/cdn/"+"13.9.1"+"/img/item/"+itemId+".png";
     }
 
     public static String getChampionImgUri(String championName) {
-        return "https://ddragon.leagueoflegends.com/cdn/"+API_VERSION+"/img/champion/"+championName+".png";
+        return "https://ddragon.leagueoflegends.com/cdn/"+"13.9.1"+"/img/champion/"+championName+".png";
     }
 
 
-    public static List<Summoner> dummySummoner(User user1, User user2) {
+    public List<Summoner> dummySummoner(User user1, User user2) {
          Summoner s1 = Summoner.builder()
                 .id(UUID.randomUUID())
                 .summonerApiId("DIiLDPb8BjQewHIbqm1adVUIAObCRiA-wHgAU7mKaGjRNgI")
@@ -78,14 +87,14 @@ public class RiotApiUtil {
         return List.of(s1, s2, s3);
     }
 
-    public static List<Statistics> dummyStatistics(List<Summoner> summoners) {
+    public List<Statistics> dummyStatistics(List<Summoner> summoners) {
         Statistics st1 = Statistics.init(summoners.get(0));
         Statistics st2 = Statistics.init(summoners.get(1));
         Statistics st3 = Statistics.init(summoners.get(2));
         return List.of(st1, st2, st3);
     }
 
-    public static User dummyUser1() {
+    public User dummyUser1() {
         return User.builder()
                 .id(null)
                 .email("Dummy1")
@@ -101,7 +110,7 @@ public class RiotApiUtil {
                 .build();
     }
 
-    public static User dummyUser2() {
+    public User dummyUser2() {
         return User.builder()
                 .id(null)
                 .email("Dummy2")

@@ -2,6 +2,7 @@ package com.example.jwttest.global.riot.service;
 
 import com.example.jwttest.global.riot.RiotApiUtil;
 import io.jsonwebtoken.lang.Assert;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -13,7 +14,10 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MatchRiotApiService {
+
+    private final RiotApiUtil riotApiUtil;
 
     private final String BASE_URI = "https://asia.api.riotgames.com/lol/match/v5/matches/";
 
@@ -23,7 +27,7 @@ public class MatchRiotApiService {
     }
 
     private Map<String, Object> getApiMatch(String uriPath) {
-        String fullUri = BASE_URI + uriPath + "?api_key=" + RiotApiUtil.API_KEY;
+        String fullUri = BASE_URI + uriPath + "?api_key=" + riotApiUtil.API_KEY();
         return RiotApiUtil.REST.getForObject(fullUri, Map.class);
     }
 
@@ -46,7 +50,7 @@ public class MatchRiotApiService {
 
         String uriPath = uriBuilder.build().toString();
 
-        String fullUri = BASE_URI + uriPath + "&api_key=" + RiotApiUtil.API_KEY;
+        String fullUri = BASE_URI + uriPath + "&api_key=" + riotApiUtil.API_KEY();
         return RiotApiUtil.REST.getForObject(fullUri, List.class);
     }
 

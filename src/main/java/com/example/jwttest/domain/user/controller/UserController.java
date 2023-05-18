@@ -21,12 +21,12 @@ import java.util.UUID;
 public class UserController {
     private final UserQuery userQuery;
 
-    @GetMapping("user")
+    @GetMapping("/user")
     public ResponseEntity<UserDto> userByToken(@AuthenticationPrincipal UserInfo userInfo) {
         return ResponseEntity.ok().body(userQuery.execute(userInfo.userId()));
     }
 
-    @GetMapping("user/{userId}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<UserDto> userByID(@PathVariable UUID userId) {
         return ResponseEntity.ok().body(userQuery.execute(userId));
     }

@@ -2,11 +2,15 @@ package com.example.jwttest.global.riot.service;
 
 import com.example.jwttest.domain.summoner.dto.SummonerDto;
 import com.example.jwttest.global.riot.RiotApiUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class SummonerRiotApiService {
+
+    private final RiotApiUtil riotApiUtil;
 
     private final String BASE_URI = "https://kr.api.riotgames.com/lol/summoner/v4/summoners/";
 
@@ -22,7 +26,7 @@ public class SummonerRiotApiService {
     }
 
     private SummonerDto getSummonerDto(String uriPath) {
-        String fullUri = BASE_URI + uriPath + "?api_key=" + RiotApiUtil.API_KEY;
+        String fullUri = BASE_URI + uriPath + "?api_key=" + riotApiUtil.API_KEY();
         return RiotApiUtil.REST.getForObject(fullUri, SummonerDto.class);
     }
 }
