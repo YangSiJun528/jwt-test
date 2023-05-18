@@ -1,6 +1,6 @@
 # auth 관련 파일
 
-src/main/resources/application-auth.yml
+src/main/resources/*.yml
 
 # gitignore.io 사용
 
