@@ -25,7 +25,8 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      REDIRECT_URI: http://localhost:3000/gauth/code
+      GAUTH_REDIRECT_URI: http://localhost:3000/gauth/code
+      AUTH_REDIRECT_URI: http://localhost:3000/
       MYSQL_HOST: jdbc:mysql://gol-db:3306/gol?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       MYSQL_USERNAME: admin
       MYSQL_PASSWORD: qwertyuiop0987654321
