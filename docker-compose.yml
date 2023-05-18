@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  gol-db:
+    image: mysql:8
+    volumes:
+      - gol-db-volume:/var/lib/gol-mysql
+#    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=qwertyuiop0987654321
+      - MYSQL_DATABASE=gol
+      - MYSQL_USER=GOL_ADMIN
+      - MYSQL_PASSWORD=qwertyuiop0987654321
+    networks:
+      - gol-backend
+
+  gol-spring:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    depends_on:
+      - gol-db   # db 컨테이너가 생성될 때 까지 대기
+    ports:
+      - "80:8080"
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      MYSQL_HOST: gol-db:3306
+      MYSQL_USERNAME: GOL_ADMIN
+      MYSQL_PASSWORD: qwertyuiop0987654321
+      JOB_ENABLED: false
+      JOB_NAME:
+      RIOT_API_KEY:
+    networks:
+      - gol-backend
+
+volumes:
+  gol-db-volume: {}
+
+networks:
+  gol-backend: {}
