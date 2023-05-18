@@ -3,9 +3,11 @@ package com.example.jwttest.global.riot.service;
 import com.example.jwttest.domain.summoner.dto.SummonerDto;
 import com.example.jwttest.global.riot.RiotApiUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SummonerRiotApiService {
@@ -27,6 +29,7 @@ public class SummonerRiotApiService {
 
     private SummonerDto getSummonerDto(String uriPath) {
         String fullUri = BASE_URI + uriPath + "?api_key=" + riotApiUtil.API_KEY();
+        log.warn(fullUri);
         return RiotApiUtil.REST.getForObject(fullUri, SummonerDto.class);
     }
 }
