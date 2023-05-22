@@ -29,7 +29,7 @@ public class Match {
 
     @Lob
     @Convert(converter = MapToJsonConverter.class)
-    @Column(nullable = false)
+    @Column(columnDefinition = "MEDIUMBLOB", nullable = false)
     private Map<String, Object> response;
 
     @Column(nullable = false)

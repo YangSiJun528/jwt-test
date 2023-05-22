@@ -140,7 +140,7 @@ public class RenewalRankJobConfiguration {
     public JdbcPagingItemReader<Map<String, Object>> tierItemReader(DataSource dataSource) {
         SqlPagingQueryProviderFactoryBean queryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
         queryProviderFactoryBean.setDataSource(dataSource);
-        String rankCase = "CASE l.RANK " +
+        String rankCase = "CASE l.RANK_NUM " +
                 "WHEN 'I' THEN 0 " +
                 "WHEN 'II' THEN 1 " +
                 "WHEN 'III' THEN 2 " +
@@ -159,12 +159,12 @@ public class RenewalRankJobConfiguration {
                 "ELSE -1 END";
         queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
                 "ROW_NUMBER() OVER (PARTITION BY QUEUE_TYPE ORDER BY "+ rankCase +" ASC, "+ tierCase +" ASC, LEAGUE_POINTS DESC) as RANKING_NUMBER, " +
-                "l.RANK as RANK, " +
+                "l.RANK_NUM as RANK_NUM, " +
                 "l.TIER as TIER_TYPE, " +
                 "l.LEAGUE_POINTS as LEAGUE_POINTS, " +
                 "l.QUEUE_TYPE as QUEUE_TYPE "
         );
-        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st, LEAGUE as l ");
+        queryProviderFactoryBean.setFromClause("from summoner as s, statistics as st, league as l ");
         queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID AND l.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
         Map<String, Order> sortKeys = new HashMap<>(1);
         sortKeys.put("SUMMONER_ID", Order.ASCENDING);

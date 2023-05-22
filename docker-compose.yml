@@ -31,9 +31,9 @@ services:
       MYSQL_USERNAME: admin
       MYSQL_PASSWORD: qwertyuiop0987654321
       JOB_ENABLED: false
-      DDL_AUTO: validate
+      DDL_AUTO: update
       JOB_NAME:
-      RIOT_API_KEY: RGAPI-04db374f-a866-43b7-8f51-7421418f1a08
+      RIOT_API_KEY: RGAPI-3d9076d9-4c72-4e74-9b3a-5d082961dd6b
     networks:
       - gol-backend
 
