@@ -1,8 +1,10 @@
 package com.example.jwttest.global.batch.dto;
 
+import java.util.UUID;
+
 public record MatchSummonerBatchDto(
         String matchId,
-        String summonerId,
+        UUID summonerId,
         String summonerApiId
 ) {
 

@@ -291,7 +291,7 @@ public class RenewalMatchJobConfiguration {
     }
 
     private final RowMapper<MatchSummonerBatchDto> matchSummonerDtoRowMapper =
-            (rs, rowNum) -> new MatchSummonerBatchDto(rs.getString("MATCH_ID"), rs.getString("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
+            (rs, rowNum) -> new MatchSummonerBatchDto(rs.getString("MATCH_ID"), (java.util.UUID) rs.getObject("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
     @Bean(BEAN_PREFIX + "itemProcessor3")
     @StepScope
     public ItemProcessor<MatchSummonerBatchDto, MatchSummonerBatchDto> itemProcessor3() {
