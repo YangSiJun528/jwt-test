@@ -4,9 +4,7 @@ import com.example.jwttest.domain.user.dto.RefreshTokenReqDto;
 import com.example.jwttest.domain.user.dto.TokenResDto;
 import com.example.jwttest.domain.user.service.RefreshTokenService;
 import com.example.jwttest.domain.user.service.SignInService;
-import com.example.jwttest.domain.user.service.SignOutService;
 import com.example.jwttest.global.security.gauth.GauthEnvironment;
-import com.example.jwttest.global.security.jwt.UserInfo;
 import gauth.GAuth;
 import gauth.GAuthToken;
 import gauth.GAuthUserInfo;
@@ -14,11 +12,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -29,7 +25,6 @@ public class AuthController {
     private final GauthEnvironment env;
     private final SignInService signInService;
     private final RefreshTokenService refreshTokenService;
-    private final SignOutService signoutService;
     private final GAuth gAuth;
 
 
@@ -61,13 +56,6 @@ public class AuthController {
         }
     }
      */
-
-    @GetMapping("/signout")
-    public ResponseEntity<Map<String, String>> signOut(@AuthenticationPrincipal UserInfo userInfo) {
-        log.info("{}", userInfo);
-        signoutService.execute(userInfo.userId());
-        return ResponseEntity.ok().body(Map.of("message", "User가 성공적으로 삭제되었습니다"));
-    }
 
     @PostMapping("/refresh")
     public ResponseEntity<TokenResDto> refresh(@Valid @RequestBody RefreshTokenReqDto refreshTokenReqDto) {
