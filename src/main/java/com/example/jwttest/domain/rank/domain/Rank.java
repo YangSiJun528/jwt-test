@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Table(name = "`rank`")
+@Table(name = "`rank`", uniqueConstraints = @UniqueConstraint(columnNames = {"rankType", "SUMMONER_SUMMONER_ID"}))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Rank {

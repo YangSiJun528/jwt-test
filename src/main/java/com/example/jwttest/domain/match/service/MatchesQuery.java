@@ -31,7 +31,7 @@ public class MatchesQuery {
         LocalDateTime endDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(endTimestamp), ZoneId.systemDefault());
         Summoner summoner = summonerRepository.findById(summonerId)
                 .orElseThrow(() -> new ExpectedException("summonerId와 대응되는 Summoner가 존재하지 않습니다", HttpStatus.BAD_REQUEST));
-        Page<Match> matches = matchRepository.findAllBySummonerIdAndStartedAtBetween(summoner, startDateTime, endDateTime, PageRequest.of(page, size, Sort.Direction.ASC, "startedAt"));
+        Page<Match> matches = matchRepository.findAllBySummonerIdAndStartedAtBetween(summoner, startDateTime, endDateTime, PageRequest.of(page, size, Sort.by("startedAt").descending()));
         log.warn(matches.toString());
         return toDto(matches, summoner);
     }
@@ -39,7 +39,7 @@ public class MatchesQuery {
     public Page<MatchLogResponseDto> execute(UUID summonerId, Integer page, Integer size) {
         Summoner summoner = summonerRepository.findById(summonerId)
                 .orElseThrow(() -> new ExpectedException("summonerId와 대응되는 Summoner가 존재하지 않습니다", HttpStatus.BAD_REQUEST));
-        Page<Match> matches = matchRepository.findAllBySummonerId(summoner, PageRequest.of(page, size, Sort.Direction.ASC, "startedAt"));
+        Page<Match> matches = matchRepository.findAllBySummonerId(summoner, PageRequest.of(page, size, Sort.by("startedAt").descending()));
         log.warn(matches.toString());
         return toDto(matches, summoner);
     }

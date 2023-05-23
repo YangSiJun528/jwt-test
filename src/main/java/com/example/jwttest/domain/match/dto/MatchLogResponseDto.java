@@ -66,7 +66,9 @@ public record MatchLogResponseDto (
         int subStyle = -1;
         for (Map<String, Object> style : styles) {
             if (style.get("description").equals("primaryStyle")) {
-                primaryStyle = (int) style.get("style");
+                List<Map<String, Object>> selections = (List<Map<String, Object>>) style.get("selections");
+                Map<String, Object> selection0 = selections.get(0);
+                primaryStyle = (int) selection0.get("perk");
             } else if (style.get("description").equals("subStyle")) {
                 subStyle = (int) style.get("style");
             }

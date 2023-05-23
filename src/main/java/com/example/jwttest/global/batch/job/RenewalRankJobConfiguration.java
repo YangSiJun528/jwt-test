@@ -15,8 +15,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.*;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.PagingQueryProvider;
@@ -90,7 +89,8 @@ public class RenewalRankJobConfiguration {
                                   @Qualifier(BEAN_PREFIX + "curLoseStreak_" + "step") Step curLoseStreakStep,
                                   @Qualifier(BEAN_PREFIX + "curWinStreak_" + "step") Step curWinStreakStep,
                                   @Qualifier(BEAN_PREFIX + "matchCount_" + "step") Step matchCountStep,
-                                  @Qualifier(BEAN_PREFIX + "summonerLevel_" + "step") Step summonerLevelStep
+                                  @Qualifier(BEAN_PREFIX + "summonerLevel_" + "step") Step summonerLevelStep// ,
+                                  //@Qualifier(BEAN_PREFIX + "removeBeforeRank_" + "step") Step removeBeforeRankStep
     ) {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .listener(new ResetCacheJobListener())
@@ -99,6 +99,7 @@ public class RenewalRankJobConfiguration {
                 .next(curWinStreakStep)
                 .next(matchCountStep)
                 .next(summonerLevelStep)
+                //.next(removeBeforeRankStep)
                 .build();
     }
 
@@ -188,6 +189,7 @@ public class RenewalRankJobConfiguration {
             byte[] summonerId = (byte[]) rankInfo.get("SUMMONER_ID");
             String queueType = (String) rankInfo.get("QUEUE_TYPE"); // 솔랭, 자랭
             String tierType = (String) rankInfo.get("TIER_TYPE");
+            log.warn("TIER_TYPE = {}", tierType);
             String rankNum = (String) rankInfo.get("RANK_NUM");
             Integer leaguePoints = (Integer) rankInfo.get("LEAGUE_POINTS");
             BigInteger rankingNumber = null;
@@ -529,8 +531,54 @@ public class RenewalRankJobConfiguration {
         log.warn(BEAN_PREFIX + "commonItemWriter");
         return new JdbcBatchItemWriterBuilder<RankForJdbcDto>()
                 .dataSource(dataSource)
-                .sql("insert into `rank`(RANK_ID, CREATE_AT, RANK_TYPE, RANK_VALUE, RANKING_NUMBER, SUMMONER_SUMMONER_ID) values (UUID_TO_BIN(UUID()), :createAt, :rankType, :rankValue, :rankingNumber, :summonerId)")
+                .sql("INSERT INTO `rank` (RANK_ID, CREATE_AT, RANK_TYPE, RANK_VALUE, RANKING_NUMBER, SUMMONER_SUMMONER_ID) " +
+                        "VALUES (UUID_TO_BIN(UUID()), :createAt, :rankType, :rankValue, :rankingNumber, :summonerId) " +
+                        "ON DUPLICATE KEY UPDATE " +
+                        "    CREATE_AT = VALUES(CREATE_AT), " +
+                        "    RANK_TYPE = VALUES(RANK_TYPE), " +
+                        "    RANK_VALUE = VALUES(RANK_VALUE), " +
+                        "    RANKING_NUMBER = VALUES(RANKING_NUMBER), " +
+                        "    SUMMONER_SUMMONER_ID = VALUES(SUMMONER_SUMMONER_ID);")
                 .beanMapped()
                 .build();
     }
+
+//    @Bean(BEAN_PREFIX + "removeBeforeRank_" + "step")
+//    @JobScope
+//    public Step removeBeforeRankStep(JobRepository jobRepository,
+//                                  PlatformTransactionManager transactionManager,
+//                                  DataSource dataSource
+//    ) {
+//        log.warn(BEAN_PREFIX + "removeBeforeRank_" + "step");
+//        return new StepBuilder(BEAN_PREFIX + "removeBeforeRank_" + "step", jobRepository)
+//                .<String,String>chunk(CHUNK_SIZE, transactionManager)
+//                .reader(removeBeforeRankReader())
+//                .writer(removeBeforeRankWriter(dataSource))
+//                .build();
+//    }
+//
+//    @Bean(BEAN_PREFIX + "removeBeforeRank_" + "reader")
+//    @StepScope
+//    public ItemReader<String> removeBeforeRankReader() {
+//        log.warn(BEAN_PREFIX + "removeBeforeRankReader");
+//        return jobParameter.dateTime::toString;
+//    }
+//
+//    @Bean(BEAN_PREFIX + "removeBeforeRank_" + "writer")
+//    @StepScope
+//    public ItemWriter<String> removeBeforeRankWriter(DataSource dataSource) {
+//        log.warn(BEAN_PREFIX + "removeBeforeRankWriter");
+//        return new JdbcBatchItemWriterBuilder<String>()
+//                .dataSource(dataSource)
+//                .sql("DELETE t1 FROM `rank` t1 " +
+//                        "JOIN ( " +
+//                        "    SELECT RANK_TYPE, SUMMONER_SUMMONER_ID, MAX(create_at) as max_create_at " +
+//                        "    FROM `rank` " +
+//                        "    GROUP BY RANK_TYPE, SUMMONER_SUMMONER_ID " +
+//                        ") t2 " +
+//                        "ON t1.RANK_TYPE = t2.RANK_TYPE AND t1.SUMMONER_SUMMONER_ID = t2.SUMMONER_SUMMONER_ID " +
+//                        "WHERE t1.create_at < t2.max_create_at " +
+//                        "AND 1 = :string;")
+//                .build();
+//    }
 }
