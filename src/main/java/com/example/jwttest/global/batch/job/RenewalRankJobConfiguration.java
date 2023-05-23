@@ -129,12 +129,6 @@ public class RenewalRankJobConfiguration {
     public JdbcPagingItemReader<Map<String, Object>> tierItemReader(DataSource dataSource) {
         SqlPagingQueryProviderFactoryBean queryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
         queryProviderFactoryBean.setDataSource(dataSource);
-        String rankCase = "CASE l.RANK_NUM " +
-                "WHEN 'I' THEN 0 " +
-                "WHEN 'II' THEN 1 " +
-                "WHEN 'III' THEN 2 " +
-                "WHEN 'VI' THEN 3 " +
-                "END ";
         String tierCase = "CASE l.TIER " +
                 "WHEN 'CHALLENGER' THEN 0 " +
                 "WHEN 'GRANDMASTER' THEN 1 " +
@@ -146,8 +140,14 @@ public class RenewalRankJobConfiguration {
                 "WHEN 'BRONZE' THEN 7 " +
                 "WHEN 'IRON' THEN 8 " +
                 "ELSE -1 END";
+        String rankCase = "CASE l.RANK_NUM " +
+                "WHEN 'I' THEN 0 " +
+                "WHEN 'II' THEN 1 " +
+                "WHEN 'III' THEN 2 " +
+                "WHEN 'VI' THEN 3 " +
+                "END ";
         queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
-                "ROW_NUMBER() OVER (PARTITION BY QUEUE_TYPE ORDER BY " + rankCase + " ASC, " + tierCase + " ASC, LEAGUE_POINTS DESC) as RANKING_NUMBER, " +
+                "ROW_NUMBER() OVER (PARTITION BY QUEUE_TYPE ORDER BY " + tierCase + " ASC, " + rankCase + " ASC, LEAGUE_POINTS DESC) as RANKING_NUMBER, " +
                 "l.RANK_NUM as RANK_NUM, " +
                 "l.TIER as TIER_TYPE, " +
                 "l.LEAGUE_POINTS as LEAGUE_POINTS, " +
@@ -582,3 +582,56 @@ public class RenewalRankJobConfiguration {
 //                .build();
 //    }
 }
+
+
+
+//
+//    SELECT s.summoner_id AS summoner_id,
+//        (CASE l.rank_num
+//        WHEN 'I' THEN 0
+//        WHEN 'II' THEN 1
+//        WHEN 'III' THEN 2
+//        WHEN 'IV' THEN 3
+//        end) AS R_R_NUM,
+//        (CASE l.tier
+//        WHEN 'CHALLENGER' THEN 0
+//        WHEN 'GRANDMASTER' THEN 1
+//        WHEN 'MASTER' THEN 2
+//        WHEN 'DIAMOND' THEN 3
+//        WHEN 'PLATINUM' THEN 4
+//        WHEN 'GOLD' THEN 5
+//        WHEN 'SILVER' THEN 6
+//        WHEN 'BRONZE' THEN 7
+//        WHEN 'IRON' THEN 8
+//        ELSE -1
+//        end) AS R_TIER,
+//        Row_number() over (partition BY queue_type ORDER BY
+//        CASE l.tier
+//        WHEN 'CHALLENGER' THEN 0
+//        WHEN 'GRANDMASTER' THEN 1
+//        WHEN 'MASTER' THEN 2
+//        WHEN 'DIAMOND' THEN 3
+//        WHEN 'PLATINUM' THEN 4
+//        WHEN 'GOLD' THEN 5
+//        WHEN 'SILVER' THEN 6
+//        WHEN 'BRONZE' THEN 7
+//        WHEN 'IRON' THEN 8
+//        ELSE -1
+//        end ASC,
+//        CASE l.rank_num
+//        WHEN 'I' THEN 0
+//        WHEN 'II' THEN 1
+//        WHEN 'III' THEN 2
+//        WHEN 'IV' THEN 3
+//        end ASC, league_points DESC) AS ranking_number,
+//        l.rank_num AS rank_num,
+//        l.tier AS tier_type,
+//        l.league_points AS league_points,
+//        l.queue_type AS queue_type
+//        FROM `summoner` AS s,
+//        `statistics` AS st,
+//        league AS l
+//        WHERE st.summoner_summoner_id = s.summoner_id
+//        AND l.summoner_summoner_id = s.summoner_id
+//        ORDER BY queue_type,
+//        ranking_number ASC;
