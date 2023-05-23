@@ -219,7 +219,7 @@ public class RenewalMatchJobConfiguration {
         log.warn(BEAN_PREFIX + "itemWriter2");
         return new JpaItemWriterBuilder<Match>()
                 .entityManagerFactory(entityManagerFactory)
-                .usePersist(true)
+                .usePersist(false)
                 .build();
     }
 

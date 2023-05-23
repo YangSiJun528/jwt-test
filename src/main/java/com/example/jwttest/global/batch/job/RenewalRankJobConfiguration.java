@@ -164,7 +164,7 @@ public class RenewalRankJobConfiguration {
                 "l.LEAGUE_POINTS as LEAGUE_POINTS, " +
                 "l.QUEUE_TYPE as QUEUE_TYPE "
         );
-        queryProviderFactoryBean.setFromClause("from summoner as s, statistics as st, league as l ");
+        queryProviderFactoryBean.setFromClause("from `summoner` as s, `statistics` as st, league as l ");
         queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID AND l.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
         Map<String, Order> sortKeys = new HashMap<>(1);
         sortKeys.put("SUMMONER_ID", Order.ASCENDING);
@@ -244,7 +244,7 @@ public class RenewalRankJobConfiguration {
                 "ROW_NUMBER() OVER (ORDER BY CUR_LOSE_STREAK DESC) as RANKING_NUMBER, " +
                 "st.CUR_LOSE_STREAK as CUR_LOSE_STREAK "
         );
-        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st ");
+        queryProviderFactoryBean.setFromClause("from `summoner` as s, `statistics` as st ");
         queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
         Map<String, Order> sortKeys = new HashMap<>(1);
         sortKeys.put("SUMMONER_ID", Order.ASCENDING);
@@ -315,7 +315,7 @@ public class RenewalRankJobConfiguration {
                 "ROW_NUMBER() OVER (ORDER BY CUR_WIN_STREAK DESC) as RANKING_NUMBER, " +
                 "st.CUR_WIN_STREAK as CUR_WIN_STREAK "
         );
-        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st ");
+        queryProviderFactoryBean.setFromClause("from `summoner` as s, `statistics` as st ");
         queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
         Map<String, Order> sortKeys = new HashMap<>(1);
         sortKeys.put("SUMMONER_ID", Order.ASCENDING);
@@ -386,7 +386,7 @@ public class RenewalRankJobConfiguration {
                 "ROW_NUMBER() OVER (ORDER BY st.WIN_COUNT + st.LOSE_COUNT DESC) as RANKING_NUMBER, " +
                 "st.WIN_COUNT + st.LOSE_COUNT as MATCH_COUNT "
         );
-        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st ");
+        queryProviderFactoryBean.setFromClause("from `summoner` as s, `statistics` as st ");
         queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
         Map<String, Order> sortKeys = new HashMap<>(1);
         sortKeys.put("SUMMONER_ID", Order.ASCENDING);
