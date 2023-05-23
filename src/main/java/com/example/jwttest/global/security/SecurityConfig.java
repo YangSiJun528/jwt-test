@@ -17,6 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
+import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -41,7 +43,7 @@ public class SecurityConfig {
                         .sameOrigin()
                 )
                 .authorizeHttpRequests(httpRequests -> httpRequests
-                        .requestMatchers("/h2/**").permitAll()
+                        .requestMatchers(toH2Console()).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/rank/**").hasAnyRole(Role.ROLE_USER.getRole(), Role.ROLE_ADMIN.getRole())
                         .requestMatchers("/api/match/**").hasAnyRole(Role.ROLE_USER.getRole(), Role.ROLE_ADMIN.getRole())
