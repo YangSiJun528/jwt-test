@@ -1,5 +1,7 @@
 package com.example.jwttest.domain.summoner.service;
 
+import com.example.jwttest.domain.statistics.domain.Statistics;
+import com.example.jwttest.domain.statistics.repository.StatisticsRepository;
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.domain.summoner.dto.RegisterSummonerReqDto;
 import com.example.jwttest.domain.summoner.dto.SummonerDto;
@@ -23,6 +25,7 @@ import java.util.UUID;
 public class RegisterSummonerService {
     private final UserRepository userRepository;
     private final SummonerRepository summonerRepository;
+    private final StatisticsRepository statisticsRepository;
     private final SummonerRiotApiService summonerRiotApiService;
 
     // by userId
@@ -34,6 +37,7 @@ public class RegisterSummonerService {
                 .orElseThrow(() -> new ExpectedException("userID와 대응되는 User가 존재하지 않습니다", HttpStatus.BAD_REQUEST));
         SummonerDto summonerDto = getSummonerDto(reqDto.accountId());
         Summoner savedSummoner = summonerRepository.save(summonerDto.toEntity(user));
+        statisticsRepository.save(Statistics.init(savedSummoner));
         return SummonerResDto.fromRegistered(savedSummoner);
     }
 

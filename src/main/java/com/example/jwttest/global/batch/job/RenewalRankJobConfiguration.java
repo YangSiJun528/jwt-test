@@ -1,15 +1,8 @@
 package com.example.jwttest.global.batch.job;
 
-import com.example.jwttest.domain.match.dto.MatchSummonerDto;
-import com.example.jwttest.domain.rank.domain.Rank;
 import com.example.jwttest.domain.rank.enums.RankType;
-import com.example.jwttest.domain.statistics.domain.Statistics;
-import com.example.jwttest.domain.summoner.domain.Summoner;
-import com.example.jwttest.global.batch.InMemCacheStatistics;
 import com.example.jwttest.global.batch.ResetCacheJobListener;
-import com.example.jwttest.global.batch.dto.MatchStatisticsDto;
 import com.example.jwttest.global.batch.dto.RankForJdbcDto;
-import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -22,18 +15,13 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
-import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.PagingQueryProvider;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
-import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,10 +31,10 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import java.math.BigInteger;
 import java.sql.ResultSetMetaData;
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -158,7 +146,7 @@ public class RenewalRankJobConfiguration {
                 "WHEN 'IRON' THEN 8 " +
                 "ELSE -1 END";
         queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
-                "ROW_NUMBER() OVER (PARTITION BY QUEUE_TYPE ORDER BY "+ rankCase +" ASC, "+ tierCase +" ASC, LEAGUE_POINTS DESC) as RANKING_NUMBER, " +
+                "ROW_NUMBER() OVER (PARTITION BY QUEUE_TYPE ORDER BY " + rankCase + " ASC, " + tierCase + " ASC, LEAGUE_POINTS DESC) as RANKING_NUMBER, " +
                 "l.RANK_NUM as RANK_NUM, " +
                 "l.TIER as TIER_TYPE, " +
                 "l.LEAGUE_POINTS as LEAGUE_POINTS, " +
@@ -197,24 +185,29 @@ public class RenewalRankJobConfiguration {
     public ItemProcessor<Map<String, Object>, RankForJdbcDto> tierItemProcessor() {
         log.warn(BEAN_PREFIX + "tier_" + "itemProcessor");
         return rankInfo -> {
-            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            byte[] summonerId = (byte[]) rankInfo.get("SUMMONER_ID");
             String queueType = (String) rankInfo.get("QUEUE_TYPE"); // 솔랭, 자랭
             String tierType = (String) rankInfo.get("TIER_TYPE");
             String rankNum = (String) rankInfo.get("RANK_NUM");
             Integer leaguePoints = (Integer) rankInfo.get("LEAGUE_POINTS");
-            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+            BigInteger rankingNumber = null;
+            try {
+                rankingNumber = (BigInteger) rankInfo.get("RANKING_NUMBER");
+            } catch (ClassCastException e) {
+                rankingNumber = BigInteger.valueOf((Long) rankInfo.get("RANKING_NUMBER"));
+            }
 
             String strRankType;
-            if(queueType.equals("RANKED_SOLO_5x5")) strRankType = RankType.TIER_RANKED_SOLO_5x5.name();
-            else if(queueType.equals("RANKED_FLEX_SR")) strRankType = RankType.TIER_RANKED_FLEX_SR.name();
+            if (queueType.equals("RANKED_SOLO_5x5")) strRankType = RankType.TIER_RANKED_SOLO_5x5.name();
+            else if (queueType.equals("RANKED_FLEX_SR")) strRankType = RankType.TIER_RANKED_FLEX_SR.name();
             else strRankType = "error";
 
             return new RankForJdbcDto(
                     UUID.randomUUID(),
                     summonerId,
-                    rankingNumber,
+                    rankingNumber.toString(),
                     strRankType, // String으로 변환해서 저장
-                    queueType + "_" +tierType + "_" + rankNum + "_" + leaguePoints,
+                    queueType + "_" + tierType + "_" + rankNum + "_" + leaguePoints,
                     jobParameter.getDateTime()
             );
         };
@@ -223,8 +216,8 @@ public class RenewalRankJobConfiguration {
     @Bean(BEAN_PREFIX + "curLoseStreak_" + "step")
     @JobScope
     public Step curLoseStreakStep(JobRepository jobRepository,
-                      PlatformTransactionManager transactionManager,
-                      DataSource dataSource
+                                  PlatformTransactionManager transactionManager,
+                                  DataSource dataSource
     ) {
         log.warn(BEAN_PREFIX + "curLoseStreak_" + "step");
         return new StepBuilder(BEAN_PREFIX + "curLoseStreak_" + "step", jobRepository)
@@ -276,14 +269,19 @@ public class RenewalRankJobConfiguration {
     public ItemProcessor<Map<String, Object>, RankForJdbcDto> curLoseStreakItemProcessor() {
         log.warn(BEAN_PREFIX + "curLoseStreak_" + "itemProcessor");
         return rankInfo -> {
-            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            byte[] summonerId = (byte[]) rankInfo.get("SUMMONER_ID");
             Integer curLoseStreak = (Integer) rankInfo.get("CUR_LOSE_STREAK");
-            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+            BigInteger rankingNumber = null;
+            try {
+                rankingNumber = (BigInteger) rankInfo.get("RANKING_NUMBER");
+            } catch (ClassCastException e) {
+                rankingNumber = BigInteger.valueOf((Long) rankInfo.get("RANKING_NUMBER"));
+            }
 
             return new RankForJdbcDto(
                     UUID.randomUUID(),
                     summonerId,
-                    rankingNumber,
+                    rankingNumber.toString(),
                     RankType.CUR_LOSE_STREAK.name(), // String으로 변환해서 저장
                     curLoseStreak.toString(),
                     jobParameter.getDateTime()
@@ -294,8 +292,8 @@ public class RenewalRankJobConfiguration {
     @Bean(BEAN_PREFIX + "curWinStreak_" + "step")
     @JobScope
     public Step curWinStreakStep(JobRepository jobRepository,
-                                  PlatformTransactionManager transactionManager,
-                                  DataSource dataSource
+                                 PlatformTransactionManager transactionManager,
+                                 DataSource dataSource
     ) {
         log.warn(BEAN_PREFIX + "curWinStreak_" + "step");
         return new StepBuilder(BEAN_PREFIX + "curWinStreak_" + "step", jobRepository)
@@ -347,14 +345,19 @@ public class RenewalRankJobConfiguration {
     public ItemProcessor<Map<String, Object>, RankForJdbcDto> curWinStreakItemProcessor() {
         log.warn(BEAN_PREFIX + "curWinStreak_" + "itemProcessor");
         return rankInfo -> {
-            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            byte[] summonerId = (byte[]) rankInfo.get("SUMMONER_ID");
             Integer curWinStreak = (Integer) rankInfo.get("CUR_WIN_STREAK");
-            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+            BigInteger rankingNumber = null;
+            try {
+                rankingNumber = (BigInteger) rankInfo.get("RANKING_NUMBER");
+            } catch (ClassCastException e) {
+                rankingNumber = BigInteger.valueOf((Long) rankInfo.get("RANKING_NUMBER"));
+            }
 
             return new RankForJdbcDto(
                     UUID.randomUUID(),
                     summonerId,
-                    rankingNumber,
+                    rankingNumber.toString(),
                     RankType.CUR_WIN_STREAK.name(), // String으로 변환해서 저장
                     curWinStreak.toString(),
                     jobParameter.getDateTime()
@@ -365,8 +368,8 @@ public class RenewalRankJobConfiguration {
     @Bean(BEAN_PREFIX + "matchCount_" + "step")
     @JobScope
     public Step matchCountStep(JobRepository jobRepository,
-                                 PlatformTransactionManager transactionManager,
-                                 DataSource dataSource
+                               PlatformTransactionManager transactionManager,
+                               DataSource dataSource
     ) {
         log.warn(BEAN_PREFIX + "matchCount_" + "step");
         return new StepBuilder(BEAN_PREFIX + "matchCount_" + "step", jobRepository)
@@ -418,14 +421,24 @@ public class RenewalRankJobConfiguration {
     public ItemProcessor<Map<String, Object>, RankForJdbcDto> matchCountItemProcessor() {
         log.warn(BEAN_PREFIX + "matchCount_" + "itemProcessor");
         return rankInfo -> {
-            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
-            Long matchCount = (Long) rankInfo.get("MATCH_COUNT");
-            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+            byte[] summonerId = (byte[]) rankInfo.get("SUMMONER_ID");
+            BigInteger matchCount = null;
+            try {
+                matchCount = (BigInteger) rankInfo.get("MATCH_COUNT");
+            } catch (ClassCastException e) {
+                matchCount = BigInteger.valueOf((Long) rankInfo.get("MATCH_COUNT"));
+            }
+            BigInteger rankingNumber = null;
+            try {
+                rankingNumber = (BigInteger) rankInfo.get("RANKING_NUMBER");
+            } catch (ClassCastException e) {
+                rankingNumber = BigInteger.valueOf((Long) rankInfo.get("RANKING_NUMBER"));
+            }
 
             return new RankForJdbcDto(
                     UUID.randomUUID(),
                     summonerId,
-                    rankingNumber,
+                    rankingNumber.toString(),
                     RankType.MATCH_COUNT.name(), // String으로 변환해서 저장
                     matchCount.toString(),
                     jobParameter.getDateTime()
@@ -436,8 +449,8 @@ public class RenewalRankJobConfiguration {
     @Bean(BEAN_PREFIX + "summonerLevel_" + "step")
     @JobScope
     public Step summonerLevelStep(JobRepository jobRepository,
-                               PlatformTransactionManager transactionManager,
-                               DataSource dataSource
+                                  PlatformTransactionManager transactionManager,
+                                  DataSource dataSource
     ) {
         log.warn(BEAN_PREFIX + "summonerLevel_" + "step");
         return new StepBuilder(BEAN_PREFIX + "summonerLevel_" + "step", jobRepository)
@@ -489,14 +502,19 @@ public class RenewalRankJobConfiguration {
     public ItemProcessor<Map<String, Object>, RankForJdbcDto> summonerLevelItemProcessor() {
         log.warn(BEAN_PREFIX + "summonerLevel_" + "itemProcessor");
         return rankInfo -> {
-            UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
+            byte[] summonerId = (byte[]) rankInfo.get("SUMMONER_ID");
             Integer summonerLevel = (Integer) rankInfo.get("SUMMONER_LEVEL");
-            Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
+            BigInteger rankingNumber = null;
+            try {
+                rankingNumber = (BigInteger) rankInfo.get("RANKING_NUMBER");
+            } catch (ClassCastException e) {
+                rankingNumber = BigInteger.valueOf((Long) rankInfo.get("RANKING_NUMBER"));
+            }
 
             return new RankForJdbcDto(
                     UUID.randomUUID(),
                     summonerId,
-                    rankingNumber,
+                    rankingNumber.toString(),
                     RankType.SUMMONER_LEVEL.name(), // String으로 변환해서 저장
                     summonerLevel.toString(),
                     jobParameter.getDateTime()
@@ -511,11 +529,8 @@ public class RenewalRankJobConfiguration {
         log.warn(BEAN_PREFIX + "commonItemWriter");
         return new JdbcBatchItemWriterBuilder<RankForJdbcDto>()
                 .dataSource(dataSource)
-                .sql("insert into `RANK`(RANK_ID, CREATE_AT, RANK_TYPE, RANK_VALUE, RANKING_NUMBER, SUMMONER_SUMMONER_ID) values (:id, :createAt, :rankType, :rankValue, :rankingNumber, :summonerId)")
+                .sql("insert into `rank`(RANK_ID, CREATE_AT, RANK_TYPE, RANK_VALUE, RANKING_NUMBER, SUMMONER_SUMMONER_ID) values (UUID_TO_BIN(UUID()), :createAt, :rankType, :rankValue, :rankingNumber, :summonerId)")
                 .beanMapped()
                 .build();
     }
 }
-
-//TODO rank에 솔랭, 자랭 여부 추가
-// 나머지는 LEAGUE 조인 안해야 함 - LEAGUE에 솔랭 자랭 있어서, 한 소롼사가 여러 컬럼 가질 수 있음

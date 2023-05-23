@@ -171,7 +171,7 @@ public class RenewalStatisticsJobConfiguration {
     public ItemProcessor<MatchStatisticsDto, Statistics> itemProcessor1() {
         log.warn(BEAN_PREFIX + "itemProcessor1");
         return matchStatisticsDto -> {
-            log.warn("Match Started = {}", matchStatisticsDto.match().getStartedAt().toString());
+            //log.warn("Match Started = {}", matchStatisticsDto.match().getStartedAt().toString());
             Statistics statistics = matchStatisticsDto.statistics();
             Statistics cachedStatistics = InMemCacheStatistics.getInstance().stream()
                     .filter(s -> s.getId().equals(statistics.getId())).findAny()
@@ -195,7 +195,7 @@ public class RenewalStatisticsJobConfiguration {
             );
             InMemCacheStatistics.getInstance().remove(cachedStatistics);
             InMemCacheStatistics.getInstance().add(newStatistics);
-            log.warn("newStatistics = {}", newStatistics);
+            //log.warn("newStatistics = {}", newStatistics);
             return newStatistics;
         };
     }
@@ -222,4 +222,3 @@ public class RenewalStatisticsJobConfiguration {
         return participant;
     }
 }
-

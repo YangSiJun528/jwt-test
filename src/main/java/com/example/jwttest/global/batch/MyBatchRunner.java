@@ -78,7 +78,7 @@ public class MyBatchRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 //        init();
-        runJob();
+//        runJob();
     }
 //
 //    @Transactional

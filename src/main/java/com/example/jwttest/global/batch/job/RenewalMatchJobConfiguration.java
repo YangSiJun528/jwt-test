@@ -291,13 +291,17 @@ public class RenewalMatchJobConfiguration {
     }
 
     private final RowMapper<MatchSummonerBatchDto> matchSummonerDtoRowMapper =
-            (rs, rowNum) -> new MatchSummonerBatchDto(rs.getString("MATCH_ID"), (java.util.UUID) rs.getObject("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
+            (rs, rowNum) ->
+            {
+                log.warn("rs.getString(\"SUMMONER_ID\") = {}", rs.getBytes("SUMMONER_ID"));
+                return new MatchSummonerBatchDto(rs.getString("MATCH_ID"), rs.getBytes("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
+            };
     @Bean(BEAN_PREFIX + "itemProcessor3")
     @StepScope
     public ItemProcessor<MatchSummonerBatchDto, MatchSummonerBatchDto> itemProcessor3() {
         log.warn(BEAN_PREFIX + "itemProcessor3");
         return item -> {
-            log.warn("matchSummonerDto = {}", item);
+            //log.warn("matchSummonerDto = {}", item);
             return item;
         };
     }
@@ -308,7 +312,7 @@ public class RenewalMatchJobConfiguration {
         log.warn(BEAN_PREFIX + "itemWriter3");
         return new JdbcBatchItemWriterBuilder<MatchSummonerBatchDto>()
                 .dataSource(dataSource)
-                .sql("insert into `match_summoner`(MATCH_SUMMONER_ID, MATCH_ID, SUMMONER_ID) values (UNHEX(REPLACE(UUID(), '-', ''), :matchId, :summonerId)")
+                .sql("insert into `match_summoner`(MATCH_SUMMONER_ID, MATCH_ID, SUMMONER_ID) values (UUID_TO_BIN(UUID()), :matchId, :summonerId)")
                 .beanMapped() // Match의 필드를 사용할 수 있게 해줌
                 .build();
     }

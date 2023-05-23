@@ -7,8 +7,8 @@ import java.util.UUID;
 
 public record RankForJdbcDto(
         UUID id,
-        UUID summonerId,
-        Long rankingNumber,
+        byte[] summonerId,
+        String rankingNumber,
         String rankType, // String임
         String rankValue,
         LocalDateTime createAt
