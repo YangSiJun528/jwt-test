@@ -23,7 +23,7 @@ public class Rank {
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.REMOVE)
     Summoner summoner;
 
     Long rankingNumber;

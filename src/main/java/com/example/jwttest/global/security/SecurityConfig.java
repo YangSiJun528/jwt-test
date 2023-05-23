@@ -42,7 +42,7 @@ public class SecurityConfig {
         }
         http
                 .csrf().disable()
-                .cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues()).and()
+                .cors().disable()
                 .httpBasic().disable()
                 .formLogin().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -55,8 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/rank/**").hasAnyRole(Role.ROLE_USER.getRole(), Role.ROLE_ADMIN.getRole())
                         .requestMatchers("/api/match/**").hasAnyRole(Role.ROLE_USER.getRole(), Role.ROLE_ADMIN.getRole())
-                        .requestMatchers("/api/summoner/**").permitAll()
-                        //.hasAnyRole(Role.ROLE_USER.getRole(), Role.ROLE_ADMIN.getRole())
+                        .requestMatchers("/api/summoner/**").hasAnyRole(Role.ROLE_USER.getRole(), Role.ROLE_ADMIN.getRole())
                         .requestMatchers("/api/user/**").hasAnyRole(Role.ROLE_USER.getRole(), Role.ROLE_ADMIN.getRole())
                         .anyRequest().denyAll()
                 )

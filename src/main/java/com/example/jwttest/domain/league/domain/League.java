@@ -17,7 +17,7 @@ public class League {
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.REMOVE)
     Summoner summoner;
 
     private String queueType;

@@ -16,7 +16,7 @@ public class Statistics {
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.REMOVE)
     Summoner summoner;
 
     Integer maxWinStreak;

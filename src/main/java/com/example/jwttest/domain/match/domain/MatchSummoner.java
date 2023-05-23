@@ -19,11 +19,11 @@ public class MatchSummoner {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(optional = false, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "match_id")
     private Match match;
 
-    @ManyToOne
+    @ManyToOne(optional = false, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "summoner_id")
     private Summoner summoner;
 }
