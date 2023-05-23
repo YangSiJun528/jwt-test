@@ -457,7 +457,7 @@ public class RenewalRankJobConfiguration {
                 "ROW_NUMBER() OVER (ORDER BY s.SUMMONER_LEVEL DESC) as RANKING_NUMBER, " +
                 "s.SUMMONER_LEVEL as SUMMONER_LEVEL "
         );
-        queryProviderFactoryBean.setFromClause("from SUMMONER as s, STATISTICS as st ");
+        queryProviderFactoryBean.setFromClause("from `summoner` as s, `statistics` as st ");
         queryProviderFactoryBean.setWhereClause("WHERE st.SUMMONER_SUMMONER_ID = s.SUMMONER_ID ");
         Map<String, Order> sortKeys = new HashMap<>(1);
         sortKeys.put("SUMMONER_ID", Order.ASCENDING);
@@ -511,7 +511,7 @@ public class RenewalRankJobConfiguration {
         log.warn(BEAN_PREFIX + "commonItemWriter");
         return new JdbcBatchItemWriterBuilder<RankForJdbcDto>()
                 .dataSource(dataSource)
-                .sql("insert into RANK(RANK_ID, CREATE_AT, RANK_TYPE, RANK_VALUE, RANKING_NUMBER, SUMMONER_SUMMONER_ID) values (:id, :createAt, :rankType, :rankValue, :rankingNumber, :summonerId)")
+                .sql("insert into `RANK`(RANK_ID, CREATE_AT, RANK_TYPE, RANK_VALUE, RANKING_NUMBER, SUMMONER_SUMMONER_ID) values (:id, :createAt, :rankType, :rankValue, :rankingNumber, :summonerId)")
                 .beanMapped()
                 .build();
     }
