@@ -140,7 +140,7 @@ public class RenewalRankJobConfiguration {
     public JdbcPagingItemReader<Map<String, Object>> tierItemReader(DataSource dataSource) {
         SqlPagingQueryProviderFactoryBean queryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
         queryProviderFactoryBean.setDataSource(dataSource);
-        String rankCase = "CASE l.RANK_NUM " +
+        String rankCase = "CASE l.RANK_VALUE " +
                 "WHEN 'I' THEN 0 " +
                 "WHEN 'II' THEN 1 " +
                 "WHEN 'III' THEN 2 " +
@@ -159,7 +159,7 @@ public class RenewalRankJobConfiguration {
                 "ELSE -1 END";
         queryProviderFactoryBean.setSelectClause("s.SUMMONER_ID as SUMMONER_ID, " +
                 "ROW_NUMBER() OVER (PARTITION BY QUEUE_TYPE ORDER BY "+ rankCase +" ASC, "+ tierCase +" ASC, LEAGUE_POINTS DESC) as RANKING_NUMBER, " +
-                "l.RANK_NUM as RANK_NUM, " +
+                "l.RANK_VALUE as RANK_VALUE, " +
                 "l.TIER as TIER_TYPE, " +
                 "l.LEAGUE_POINTS as LEAGUE_POINTS, " +
                 "l.QUEUE_TYPE as QUEUE_TYPE "
@@ -200,7 +200,7 @@ public class RenewalRankJobConfiguration {
             UUID summonerId = (UUID) rankInfo.get("SUMMONER_ID");
             String queueType = (String) rankInfo.get("QUEUE_TYPE"); // 솔랭, 자랭
             String tierType = (String) rankInfo.get("TIER_TYPE");
-            String rankValue = (String) rankInfo.get("RANK");
+            String rankValue = (String) rankInfo.get("RANK_VALUE");
             Integer leaguePoints = (Integer) rankInfo.get("LEAGUE_POINTS");
             Long rankingNumber = (Long) rankInfo.get("RANKING_NUMBER");
 

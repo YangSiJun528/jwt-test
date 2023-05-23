@@ -17,66 +17,68 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.List;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class MyBatchRunner implements CommandLineRunner {
-//    private final JobLocator jobLocator;
-//    private final JobLauncher jobLauncher;
-//    private final SummonerRepository summonerRepository;
-//    private final StatisticsRepository statisticsRepository;
-//    private final UserRepository userRepository;
-//
-//    public void runJob() throws Exception {
-//        Job testJob = jobLocator.getJob("simpleJob");
-//        JobParameters testJobParameters = new JobParametersBuilder()
-//                .addLocalDateTime("date", LocalDateTime.now())
-//                .addString("status", "test_status_1234")
-//                .toJobParameters();
-//        log.warn("testJob 실행");
-//
-//        jobLauncher.run(testJob, testJobParameters);
-//
-//        Job job1 = jobLocator.getJob("renewMatchJob");
-//        JobParameters job1Parameters = new JobParametersBuilder()
-//                .addLocalDateTime("dateTime", LocalDateTime.now())
-//                .toJobParameters();
-//        log.warn("job1 실행");
-//        /* batch 수행 */
-//        jobLauncher.run(job1, job1Parameters);
-//
-//        Job job2 = jobLocator.getJob("renewLeagueJob");
-//        JobParameters job2Parameters = new JobParametersBuilder()
-//                .addLocalDateTime("dateTime", LocalDateTime.now())
-//                .toJobParameters();
-//        log.warn("job2 실행");
-//        /* batch 수행 */
-//        jobLauncher.run(job2, job2Parameters);
-//
-//        Job job3 = jobLocator.getJob("renewStatisticsJob");
-//        JobParameters job3Parameters = new JobParametersBuilder()
-//                .addLocalDateTime("dateTime", LocalDateTime.now())
-//                .toJobParameters();
-//        log.warn("job3 실행");
-//        /* batch 수행 */
-//        jobLauncher.run(job3, job3Parameters);
-//
-//        Job job4 = jobLocator.getJob("renewRankJob");
-//        JobParameters job4Parameters = new JobParametersBuilder()
-//                .addLocalDateTime("dateTime", LocalDateTime.now())
-//                .toJobParameters();
-//        log.warn("job4 실행");
-//        /* batch 수행 */
-//        jobLauncher.run(job4, job4Parameters);
-//    }
-//
+    private final JobLocator jobLocator;
+    private final JobLauncher jobLauncher;
+    private final SummonerRepository summonerRepository;
+    private final StatisticsRepository statisticsRepository;
+    private final UserRepository userRepository;
+
+    public void runJob() throws Exception {
+        Job testJob = jobLocator.getJob("simpleJob");
+        ZonedDateTime zonedDateTime = ZonedDateTime.of(LocalDateTime.of(LocalDate.now(), LocalTime.of(3,0)), ZoneId.of("Asia/Seoul"));
+        LocalDateTime batchDateTime = zonedDateTime.toLocalDateTime();
+        JobParameters testJobParameters = new JobParametersBuilder()
+                .addLocalDateTime("date", batchDateTime)
+                .addString("status", "test_status_1234")
+                .toJobParameters();
+        log.warn("testJob 실행");
+
+        jobLauncher.run(testJob, testJobParameters);
+
+        Job job1 = jobLocator.getJob("renewMatchJob");
+        JobParameters job1Parameters = new JobParametersBuilder()
+                .addLocalDateTime("dateTime", batchDateTime)
+                .toJobParameters();
+        log.warn("job1 실행");
+        /* batch 수행 */
+        jobLauncher.run(job1, job1Parameters);
+
+        Job job2 = jobLocator.getJob("renewLeagueJob");
+        JobParameters job2Parameters = new JobParametersBuilder()
+                .addLocalDateTime("dateTime", batchDateTime)
+                .toJobParameters();
+        log.warn("job2 실행");
+        /* batch 수행 */
+        jobLauncher.run(job2, job2Parameters);
+
+        Job job3 = jobLocator.getJob("renewStatisticsJob");
+        JobParameters job3Parameters = new JobParametersBuilder()
+                .addLocalDateTime("dateTime", batchDateTime)
+                .toJobParameters();
+        log.warn("job3 실행");
+        /* batch 수행 */
+        jobLauncher.run(job3, job3Parameters);
+
+        Job job4 = jobLocator.getJob("renewRankJob");
+        JobParameters job4Parameters = new JobParametersBuilder()
+                .addLocalDateTime("dateTime", batchDateTime)
+                .toJobParameters();
+        log.warn("job4 실행");
+        /* batch 수행 */
+        jobLauncher.run(job4, job4Parameters);
+    }
+
     @Override
     public void run(String... args) throws Exception {
 //        init();
-//        runJob();
+        runJob();
     }
 //
 //    @Transactional
