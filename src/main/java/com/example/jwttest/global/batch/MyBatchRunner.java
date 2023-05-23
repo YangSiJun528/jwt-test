@@ -32,7 +32,7 @@ public class MyBatchRunner implements CommandLineRunner {
 
     public void runJob() throws Exception {
         Job testJob = jobLocator.getJob("simpleJob");
-        ZonedDateTime zonedDateTime = ZonedDateTime.of(LocalDateTime.of(LocalDate.now(), LocalTime.of(3,0)), ZoneId.of("Asia/Seoul"));
+        ZonedDateTime zonedDateTime = ZonedDateTime.of(LocalDateTime.of(LocalDate.now(), LocalTime.of(3,LocalTime.now().getMinute())), ZoneId.of("Asia/Seoul"));
         LocalDateTime batchDateTime = zonedDateTime.toLocalDateTime();
         JobParameters testJobParameters = new JobParametersBuilder()
                 .addLocalDateTime("date", batchDateTime)
