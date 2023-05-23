@@ -293,10 +293,9 @@ public class RenewalMatchJobConfiguration {
     private final RowMapper<MatchSummonerBatchDto> matchSummonerDtoRowMapper =
             (rs, rowNum) -> {
                 UUID uuid = UUID.randomUUID();
-                byte[] uuidBytes = new byte[16];
-                ByteBuffer.wrap(uuidBytes)
-                        .order(ByteOrder.BIG_ENDIAN)
-                        .putLong(uuid.getMostSignificantBits());
+                byte[] uuidBytes = ByteBuffer.wrap(new byte[16])
+                        .putLong(uuid.getMostSignificantBits())
+                        .putLong(uuid.getLeastSignificantBits()).array();
                 return new MatchSummonerBatchDto(uuidBytes, rs.getString("MATCH_ID"), rs.getString("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
             };
     @Bean(BEAN_PREFIX + "itemProcessor3")
