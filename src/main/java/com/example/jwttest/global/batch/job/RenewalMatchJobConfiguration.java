@@ -1,11 +1,12 @@
 package com.example.jwttest.global.batch.job;
 
 import com.example.jwttest.domain.match.domain.Match;
+import com.example.jwttest.domain.match.dto.MatchSummonerDto;
 import com.example.jwttest.domain.summoner.domain.Summoner;
 import com.example.jwttest.global.batch.DelayItemReadListener;
 import com.example.jwttest.global.batch.InMemCache;
-import com.example.jwttest.domain.match.dto.MatchSummonerDto;
 import com.example.jwttest.global.batch.ResetCacheJobListener;
+import com.example.jwttest.global.batch.dto.MatchSummonerBatchDto;
 import com.example.jwttest.global.riot.service.MatchRiotApiService;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.AllArgsConstructor;
@@ -24,7 +25,10 @@ import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.*;
+import org.springframework.batch.item.database.JdbcPagingItemReader;
+import org.springframework.batch.item.database.JpaPagingItemReader;
+import org.springframework.batch.item.database.Order;
+import org.springframework.batch.item.database.PagingQueryProvider;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
@@ -233,7 +237,7 @@ public class RenewalMatchJobConfiguration {
     ) {
         log.warn(BEAN_PREFIX + "step3");
         return new StepBuilder(BEAN_PREFIX + "step3", jobRepository)
-                .<MatchSummonerDto, MatchSummonerDto>chunk(CHUNK_SIZE, transactionManager)
+                .<MatchSummonerBatchDto, MatchSummonerBatchDto>chunk(CHUNK_SIZE, transactionManager)
                 .reader(itemReader3(dataSource))
                 .processor(itemProcessor3())
                 .writer(itemWriter3(dataSource))
@@ -243,11 +247,11 @@ public class RenewalMatchJobConfiguration {
     // 오늘 배치 돌린 Match의
     @Bean(BEAN_PREFIX + "itemReader3")
     @StepScope
-    public JdbcPagingItemReader<MatchSummonerDto> itemReader3(DataSource dataSource) {
+    public JdbcPagingItemReader<MatchSummonerBatchDto> itemReader3(DataSource dataSource) {
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("startDateTime", jobParameter.getDateTime().minusDays(1L));
         parameterValues.put("endDateTime", jobParameter.getDateTime());
-        return new JdbcPagingItemReaderBuilder<MatchSummonerDto>()
+        return new JdbcPagingItemReaderBuilder<MatchSummonerBatchDto>()
                 .name(BEAN_PREFIX + "itemReader3")
                 .pageSize(CHUNK_SIZE)
                 .fetchSize(CHUNK_SIZE)
@@ -284,24 +288,24 @@ public class RenewalMatchJobConfiguration {
         }
     }
 
-    private final RowMapper<MatchSummonerDto> matchSummonerDtoRowMapper =
-            (rs, rowNum) -> new MatchSummonerDto(UUID.randomUUID(), rs.getString("MATCH_ID"), rs.getString("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
+    private final RowMapper<MatchSummonerBatchDto> matchSummonerDtoRowMapper =
+            (rs, rowNum) -> new MatchSummonerBatchDto(UUID.randomUUID().toString(), rs.getString("MATCH_ID"), rs.getString("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
 
     @Bean(BEAN_PREFIX + "itemProcessor3")
     @StepScope
-    public ItemProcessor<MatchSummonerDto, MatchSummonerDto> itemProcessor3() {
+    public ItemProcessor<MatchSummonerBatchDto, MatchSummonerBatchDto> itemProcessor3() {
         log.warn(BEAN_PREFIX + "itemProcessor3");
         return item -> {
-            log.warn("matchSummonerDto = {}",item);
+            log.warn("matchSummonerDto = {}", item);
             return item;
         };
     }
 
     @Bean(BEAN_PREFIX + "itemWriter3")
     @StepScope
-    public ItemWriter<MatchSummonerDto> itemWriter3(DataSource dataSource) {
+    public ItemWriter<MatchSummonerBatchDto> itemWriter3(DataSource dataSource) {
         log.warn(BEAN_PREFIX + "itemWriter3");
-        return new JdbcBatchItemWriterBuilder<MatchSummonerDto>()
+        return new JdbcBatchItemWriterBuilder<MatchSummonerBatchDto>()
                 .dataSource(dataSource)
                 .sql("insert into `match_summoner`(MATCH_SUMMONER_ID, MATCH_ID, SUMMONER_ID) values (:id, :matchId, :summonerId)")
                 .beanMapped() // Match의 필드를 사용할 수 있게 해줌
