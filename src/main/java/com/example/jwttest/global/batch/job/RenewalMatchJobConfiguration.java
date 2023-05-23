@@ -43,6 +43,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -289,8 +291,14 @@ public class RenewalMatchJobConfiguration {
     }
 
     private final RowMapper<MatchSummonerBatchDto> matchSummonerDtoRowMapper =
-            (rs, rowNum) -> new MatchSummonerBatchDto(UUID.randomUUID().toString(), rs.getString("MATCH_ID"), rs.getString("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
-
+            (rs, rowNum) -> {
+                UUID uuid = UUID.randomUUID();
+                byte[] uuidBytes = new byte[16];
+                ByteBuffer.wrap(uuidBytes)
+                        .order(ByteOrder.BIG_ENDIAN)
+                        .putLong(uuid.getMostSignificantBits());
+                return new MatchSummonerBatchDto(uuidBytes, rs.getString("MATCH_ID"), rs.getString("SUMMONER_ID"), rs.getString("SUMMONER_API_ID"));
+            };
     @Bean(BEAN_PREFIX + "itemProcessor3")
     @StepScope
     public ItemProcessor<MatchSummonerBatchDto, MatchSummonerBatchDto> itemProcessor3() {
