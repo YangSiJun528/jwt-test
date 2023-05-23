@@ -267,7 +267,7 @@ public class RenewalMatchJobConfiguration {
         SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();
         queryProvider.setDataSource(dataSource); // Database에 맞는 PagingQueryProvider를 선택하기 위해
         queryProvider.setSelectClause("m.MATCH_ID as MATCH_ID, s.SUMMONER_API_ID as SUMMONER_API_ID, s.SUMMONER_ID as SUMMONER_ID");
-        queryProvider.setFromClause("from MATCH as m, MATCH_SUMMONER_IDS msi,  SUMMONER as s");
+        queryProvider.setFromClause("from `match` as m, `match_summoner_ids` msi, `summoner` as s");
         queryProvider.setWhereClause(
                 "WHERE m.STARTED_AT BETWEEN :startDateTime AND :endDateTime " +
                         "AND msi.MATCH_ID = m.MATCH_ID " +
