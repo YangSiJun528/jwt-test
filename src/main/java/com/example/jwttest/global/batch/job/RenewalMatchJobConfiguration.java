@@ -303,7 +303,7 @@ public class RenewalMatchJobConfiguration {
         log.warn(BEAN_PREFIX + "itemWriter3");
         return new JdbcBatchItemWriterBuilder<MatchSummonerDto>()
                 .dataSource(dataSource)
-                .sql("insert into MATCH_SUMMONER(MATCH_SUMMONER_ID, MATCH_ID, SUMMONER_ID) values (:id, :matchId, :summonerId)")
+                .sql("insert into `match_summoner`(MATCH_SUMMONER_ID, MATCH_ID, SUMMONER_ID) values (:id, :matchId, :summonerId)")
                 .beanMapped() // Match의 필드를 사용할 수 있게 해줌
                 .build();
     }
