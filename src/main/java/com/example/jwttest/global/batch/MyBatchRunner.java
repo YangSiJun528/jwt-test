@@ -75,6 +75,8 @@ public class MyBatchRunner implements CommandLineRunner {
         jobLauncher.run(job4, job4Parameters);
     }
 
+    //
+
     @Override
     public void run(String... args) throws Exception {
 //        init();
